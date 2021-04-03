@@ -100,6 +100,18 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
   args := split[1]
 
   switch cmd {
+  case "home":
+    timeline.Switch(TimelineHome)
+    return CodeOk
+  case "local":
+    timeline.Switch(TimelineLocal)
+    return CodeOk
+  case "public":
+    timeline.Switch(TimelinePublic)
+    return CodeOk
+  case "notifications":
+    timeline.Switch(TimelineNotifications)
+    return CodeOk
   case "t", "toot":
     return CmdToot(timeline, args, VisibilityPublic)
   case "tp", "tootprivate":

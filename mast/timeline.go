@@ -17,10 +17,10 @@ const (
 
 type Timeline struct {
   client                     *mastodon.Client
+  timelineType               TimelineType
 
   LastRenderedIndex          int
 
-  Type                       TimelineType
   Account                    mastodon.Account
   Toots                      []Toot
   TootIndexStatusIDMappings  map[string]int
@@ -30,16 +30,29 @@ type Timeline struct {
 func NewTimeline(mastodonClient *mastodon.Client) Timeline {
   timeline := Timeline{
     client: mastodonClient,
+    timelineType: TimelineHome,
 
     LastRenderedIndex: -1,
-    Type: TimelineHome,
     TootIndexStatusIDMappings: make(map[string]int),
   }
 
   return timeline
 }
 
-func (timeline *Timeline) Load(timelineType TimelineType) (error) {
+func (timeline *Timeline) Switch(timelineType TimelineType) {
+  if timeline.timelineType != timelineType {
+    timeline.timelineType = timelineType
+    timeline.Toots = []Toot{}
+    timeline.TootIndexStatusIDMappings = make(map[string]int)
+    timeline.LastRenderedIndex = -1
+  }
+}
+
+func (timeline *Timeline) GetCurrentType() (TimelineType) {
+  return timeline.timelineType
+}
+
+func (timeline *Timeline) Load() (error) {
   var statuses []*mastodon.Status
   var err error
 
@@ -50,7 +63,7 @@ func (timeline *Timeline) Load(timelineType TimelineType) (error) {
 
   timeline.Account = *account
 
-  switch timelineType {
+  switch timeline.timelineType {
   case TimelineHome:
     statuses, err = timeline.client.GetTimelineHome(context.Background(), nil)
   case TimelineLocal:

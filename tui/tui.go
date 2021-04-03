@@ -28,11 +28,15 @@ type TUICore struct {
   Mode                       ModeType
 
   Timeline                   mast.Timeline
+  RenderedTimelineType       mast.TimelineType
 }
 
 func TUI(tuiCore TUICore) {
-  tuiCore.Timeline = mast.NewTimeline(tuiCore.Client)
   tuiCore.App = tview.NewApplication()
+
+  tuiCore.Timeline = mast.NewTimeline(tuiCore.Client)
+  tuiCore.RenderedTimelineType = mast.TimelineHome
+  tuiCore.Timeline.Switch(mast.TimelineHome)
 
   tuiCore.CmdLine = tview.NewInputField().
     SetLabelColor(tcell.ColorDefault).
@@ -111,7 +115,7 @@ func TUI(tuiCore TUICore) {
 func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {
   _, _, w, _ := tuiCore.Stream.Box.GetInnerRect()
 
-  err := tuiCore.Timeline.Load(tuiCore.Timeline.Type)
+  err := tuiCore.Timeline.Load()
   if err != nil {
     // TODO: Display errors somewhere
     return false
@@ -122,6 +126,12 @@ func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {
   if err != nil {
     // TODO: Display errors somewhere
     return false
+  }
+
+  currentTimelineType := tuiCore.Timeline.GetCurrentType()
+  if tuiCore.RenderedTimelineType != currentTimelineType {
+    tuiCore.Stream.Clear()
+    tuiCore.RenderedTimelineType = currentTimelineType
   }
 
   fmt.Fprint(tuiCore.Stream, tview.TranslateANSI(output))
