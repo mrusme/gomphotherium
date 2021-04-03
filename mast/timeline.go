@@ -32,6 +32,7 @@ func NewTimeline(mastodonClient *mastodon.Client) Timeline {
     client: mastodonClient,
 
     LastRenderedIndex: -1,
+    Type: TimelineHome,
     TootIndexStatusIDMappings: make(map[string]int),
   }
 
@@ -86,4 +87,15 @@ func (timeline *Timeline) Load(timelineType TimelineType) (error) {
   }
 
   return nil
+}
+
+func (timeline *Timeline) Toot(status *string, inReplyTo int, filesToUpload *[]string, visibility *string, sensitive bool, spoiler *string) (*mastodon.Status, error) {
+  newToot := mastodon.Toot{
+    Status: *status,
+    Visibility: *visibility,
+    Sensitive: sensitive,
+    SpoilerText: *spoiler,
+  }
+
+  return timeline.client.PostStatus(context.Background(), &newToot)
 }

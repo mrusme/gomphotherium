@@ -44,7 +44,7 @@ func TUI(tuiCore TUICore) {
       if key == tcell.KeyEnter {
         cmd := tuiCore.CmdLine.GetText()
         tuiCore.CmdLine.SetText("...")
-        retCode := mast.CmdProcessor(tuiCore.Client, cmd)
+        retCode := mast.CmdProcessor(&tuiCore.Timeline, cmd)
         tuiCore.CmdLine.SetText("")
 
         switch retCode {
@@ -111,7 +111,7 @@ func TUI(tuiCore TUICore) {
 func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {
   _, _, w, _ := tuiCore.Stream.Box.GetInnerRect()
 
-  err := tuiCore.Timeline.Load(mast.TimelineHome)
+  err := tuiCore.Timeline.Load(tuiCore.Timeline.Type)
   if err != nil {
     // TODO: Display errors somewhere
     return false
