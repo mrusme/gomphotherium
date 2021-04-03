@@ -10,15 +10,6 @@ import (
   "github.com/mrusme/gomphotherium/mast"
 )
 
-type TimelineType int
-const (
-  TimelineHome TimelineType = 0
-  TimelineLocal = 1
-  TimelinePublic = 2
-  TimelineNotifications = 3
-  TimelineEnd = 4
-)
-
 func Timeline(MastodonClient *mastodon.Client) {
   app := tview.NewApplication()
 
@@ -45,7 +36,7 @@ func Timeline(MastodonClient *mastodon.Client) {
   app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
     if event.Key() == tcell.KeyCtrlN {
       _, _, w, _ := stream.Box.GetInnerRect()
-      output := mast.Timeline(MastodonClient, w)
+      output := mast.Timeline(MastodonClient, mast.TimelineHome, w)
       fmt.Fprint(stream, tview.TranslateANSI(output))
       return nil
     }

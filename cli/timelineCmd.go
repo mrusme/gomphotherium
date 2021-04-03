@@ -13,7 +13,7 @@ var timelineCmd = &cobra.Command{
   Short: "Display timeline",
   Long: "Display different timelines.",
   Run: func(cmd *cobra.Command, args []string) {
-    fmt.Printf(mast.Timeline(MastodonClient, 40))
+    fmt.Printf(mast.Timeline(MastodonClient, mast.TimelineHome, 40))
     return
   },
 }

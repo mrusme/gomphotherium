@@ -14,13 +14,42 @@ import (
   "github.com/mattn/go-mastodon"
 )
 
-func Timeline(mastodonClient *mastodon.Client, width int) string {
-  var output string = ""
+type TimelineType int
+const (
+  TimelineHome TimelineType = 0
+  TimelineLocal = 1
+  TimelinePublic = 2
+  TimelineNotifications = 3
+  TimelineEnd = 4
+)
 
-  timeline, err := mastodonClient.GetTimelineHome(context.Background(), nil)
-  if err != nil {
-    log.Fatal(err)
+func Timeline(mastodonClient *mastodon.Client, timelineType TimelineType, width int) string {
+  var output string = ""
+  var timeline []*mastodon.Status
+  var err error
+
+  switch timelineType {
+  case TimelineHome:
+    timeline, err = mastodonClient.GetTimelineHome(context.Background(), nil)
+  case TimelineLocal:
+    timeline, err = mastodonClient.GetTimelinePublic(context.Background(), true, nil)
+  case TimelinePublic:
+    timeline, err = mastodonClient.GetTimelinePublic(context.Background(), false, nil)
+  case TimelineNotifications:
+    notifications, err := mastodonClient.GetNotifications(context.Background(), nil)
+    if err != nil {
+      log.Fatal(err) // TODO
+    }
+
+    for _, notification := range notifications {
+      timeline = append(timeline, notification.Status)
+    }
   }
+
+  if err != nil {
+    log.Fatal(err) // TODO
+  }
+
   for i := len(timeline) - 1; i >= 0; i-- {
     output = fmt.Sprintf("%s%s [%s]\n", output, timeline[i].Account.DisplayName, timeline[i].Account.Acct)
     output = fmt.Sprintf("%s%s\n", output, html.UnescapeString(strip.StripTags(timeline[i].Content)))
