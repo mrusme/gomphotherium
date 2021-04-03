@@ -35,10 +35,17 @@ func CmdAvailable() ([]string) {
     "retoot",
     "boost",
 
-    "rep",
+    "re",
     "reply",
-    "repall",
-    "replyall",
+
+    "rep",
+    "replyprivate",
+
+    "reu",
+    "replyunlisted",
+
+    "red",
+    "replydirect",
 
     "fav",
     "ufav",
@@ -51,6 +58,7 @@ func CmdAvailable() ([]string) {
     "search",
 
     "help",
+    "?",
 
     "quit",
     "exit",
