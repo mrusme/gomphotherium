@@ -102,12 +102,31 @@ func (timeline *Timeline) Load() (error) {
   return nil
 }
 
-func (timeline *Timeline) Toot(status *string, inReplyTo int, filesToUpload *[]string, visibility *string, sensitive bool, spoiler *string) (*mastodon.Status, error) {
+func (timeline *Timeline) Toot(status *string, inReplyTo int, filesToUpload []string, visibility *string, sensitive bool, spoiler *string) (*mastodon.Status, error) {
   newToot := mastodon.Toot{
     Status: *status,
     Visibility: *visibility,
     Sensitive: sensitive,
     SpoilerText: *spoiler,
+  }
+
+  if inReplyTo > -1 {
+    newToot.InReplyToID = timeline.Toots[inReplyTo].Status.ID
+  }
+
+  if len(filesToUpload) > 0 {
+    var mediaIDs []mastodon.ID
+
+    for _, fileToUpload := range filesToUpload {
+      attachment, err := timeline.client.UploadMedia(context.Background(), fileToUpload)
+      if err != nil {
+        return nil, err
+      }
+
+      mediaIDs = append(mediaIDs, attachment.ID)
+    }
+
+    newToot.MediaIDs = mediaIDs
   }
 
   return timeline.client.PostStatus(context.Background(), &newToot)
