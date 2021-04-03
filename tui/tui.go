@@ -47,9 +47,8 @@ func TUI(tuiCore TUICore) {
     SetDoneFunc(func(key tcell.Key) {
       if key == tcell.KeyEnter {
         cmd := tuiCore.CmdLine.GetText()
-        tuiCore.CmdLine.SetText("...")
-        retCode := mast.CmdProcessor(&tuiCore.Timeline, cmd)
         tuiCore.CmdLine.SetText("")
+        retCode := mast.CmdProcessor(&tuiCore.Timeline, cmd)
 
         switch retCode {
         case mast.CodeOk:
