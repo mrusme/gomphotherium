@@ -10,7 +10,7 @@ var tuiCmd = &cobra.Command{
   Short: "Launch TUI",
   Long: "Launch TUI.",
   Run: func(cmd *cobra.Command, args []string) {
-    tui.Timeline(MastodonClient)
+    tui.TUI(MastodonClient)
   },
 }
 
