@@ -11,8 +11,8 @@ func RenderTimeline(timeline *mast.Timeline, width int) (string, error) {
   var err error = nil
 
   var tootOutput string = ""
-  newRenderedIndex := len(timeline.Toots) - 1
-  for i := newRenderedIndex; i > timeline.LastRenderedIndex; i-- {
+  newRenderedIndex := len(timeline.Toots)
+  for i := (timeline.LastRenderedIndex + 1); i < newRenderedIndex; i++ {
     tootOutput, err = RenderToot(&timeline.Toots[i], width)
     output = fmt.Sprintf("%s%s\n", output, tootOutput)
   }

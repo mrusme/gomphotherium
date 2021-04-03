@@ -22,8 +22,8 @@ type Timeline struct {
 
   Type                       TimelineType
   Account                    mastodon.Account
-  Toots                      []mastodon.Status
-  TootIDs                    map[string]int
+  Toots                      []Toot
+  TootIndexStatusIDMappings  map[string]int
 }
 
 func NewTimeline(mastodonClient *mastodon.Client) Timeline {
@@ -31,7 +31,7 @@ func NewTimeline(mastodonClient *mastodon.Client) Timeline {
     client: mastodonClient,
 
     LastRenderedIndex: -1,
-    TootIDs: make(map[string]int),
+    TootIndexStatusIDMappings: make(map[string]int),
   }
 
   return timeline
@@ -70,12 +70,16 @@ func (timeline *Timeline) Load(timelineType TimelineType) (error) {
     return err
   }
 
-  for _, status := range statuses {
+  oldestStatusIndex := len(statuses) - 1
+  for i := oldestStatusIndex; i > 0; i-- {
+    status := statuses[i]
+
     id := string(status.ID)
-    _, exists := timeline.TootIDs[id]
+    _, exists := timeline.TootIndexStatusIDMappings[id]
     if exists == false {
-      timeline.Toots = append(timeline.Toots, *status)
-      timeline.TootIDs[id] = (len(timeline.Toots) - 1)
+      tootIndex := len(timeline.Toots)
+      timeline.Toots = append(timeline.Toots, NewToot(timeline.client, status, tootIndex))
+      timeline.TootIndexStatusIDMappings[id] = tootIndex
     }
   }
 

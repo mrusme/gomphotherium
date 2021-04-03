@@ -11,37 +11,41 @@ import (
   // "github.com/eliukblau/pixterm/pkg/ansimage"
   // "context"
 
-  "github.com/mattn/go-mastodon"
-  // "github.com/mrusme/gomphotherium/mast"
+  // "github.com/mattn/go-mastodon"
+  "github.com/mrusme/gomphotherium/mast"
 )
 
-func RenderToot(toot *mastodon.Status, width int) (string, error) {
+func RenderToot(toot *mast.Toot, width int) (string, error) {
   var output string = ""
   var err error = nil
 
-  createdAt := toot.CreatedAt
+  status := &toot.Status
 
-  account := toot.Account.Acct
+  createdAt := status.CreatedAt
+
+  account := status.Account.Acct
   if account == "" {
-    account = toot.Account.Username
+    account = status.Account.Username
   }
 
   inReplyTo := ""
-  if toot.InReplyToID != nil {
-    inReplyTo = " [magenta]\xe2\x87\x9f[-]"
+  inReplyToLen := 0
+  if status.InReplyToID != nil {
+    inReplyTo = " \xe2\x87\x9f"
+    inReplyToLen = 1
   }
 
-  output = fmt.Sprintf("%s[blue]%s[-] [grey]%s%s[-]\n", output, toot.Account.DisplayName, account, inReplyTo)
-  output = fmt.Sprintf("%s%s\n", output, html.UnescapeString(strip.StripTags(toot.Content)))
+  output = fmt.Sprintf("%s[blue]%s[-] [grey]%s[-][magenta]%s[-][grey]%*d[-]\n", output, status.Account.DisplayName, account, inReplyTo, (width - len(string(toot.ID)) - len(status.Account.DisplayName) - len(account) - inReplyToLen), toot.ID)
+  output = fmt.Sprintf("%s%s\n", output, html.UnescapeString(strip.StripTags(status.Content)))
 
-  // for _, attachment := range toot.MediaAttachments {
+  // for _, attachment := range status.MediaAttachments {
   //   pix, err := ansimage.NewScaledFromURL(attachment.PreviewURL, int((float64(width) * 0.75)), width, color.Transparent, ansimage.ScaleModeResize, ansimage.NoDithering)
   //   if err == nil {
   //     output = fmt.Sprintf("%s\n%s\n", output, pix.RenderExt(false, false))
   //   }
   // }
 
-  output = fmt.Sprintf("%s[magenta]\xe2\x86\xab %d[-] [green]\xe2\x86\xbb %d[-] [yellow]\xe2\x98\x85 %d[-] [grey]#%d on %s at %s[-]\n", output, toot.RepliesCount, toot.ReblogsCount, toot.FavouritesCount, createdAt.Format("Jan 2"), createdAt.Format("15:04"))
+  output = fmt.Sprintf("%s[magenta]\xe2\x86\xab %d[-] [green]\xe2\x86\xbb %d[-] [yellow]\xe2\x98\x85 %d[-] [grey]on %s at %s[-]\n", output, status.RepliesCount, status.ReblogsCount, status.FavouritesCount, createdAt.Format("Jan 2"), createdAt.Format("15:04"))
 
   output = fmt.Sprintf("%s\n", output)
   return output, err
