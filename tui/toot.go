@@ -32,7 +32,7 @@ func RenderToot(toot *mast.Toot, width int) (string, error) {
   inReplyToLen := 0
   if status.InReplyToID != nil {
     inReplyTo = " \xe2\x87\x9f"
-    inReplyToLen = 1
+    inReplyToLen = 2
   }
 
   output = fmt.Sprintf("%s[blue]%s[-] [grey]%s[-][magenta]%s[-][grey]%*d[-]\n", output, status.Account.DisplayName, account, inReplyTo, (width - len(string(toot.ID)) - len(status.Account.DisplayName) - len(account) - inReplyToLen), toot.ID)

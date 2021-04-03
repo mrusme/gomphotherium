@@ -2,6 +2,7 @@ package tui
 
 import (
   "fmt"
+  "time"
 
   "github.com/gdamore/tcell/v2"
   "github.com/rivo/tview"
@@ -10,71 +11,140 @@ import (
   "github.com/mrusme/gomphotherium/mast"
 )
 
-func TUI(mastodonClient *mastodon.Client) {
-  timeline := mast.NewTimeline(mastodonClient)
-  app := tview.NewApplication()
+type ModeType int
+const (
+  NormalMode ModeType        = 1
+  InsertMode                 = 2
+)
 
-  input := tview.NewInputField().
+type TUICore struct {
+  App                        *tview.Application
+  CmdLine                    *tview.InputField
+  Stream                     *tview.TextView
+  Grid                       *tview.Grid
+
+  Prompt                     string
+  Mode                       ModeType
+
+  Timeline                   mast.Timeline
+}
+
+func TUI(tuiCore TUICore, mastodonClient *mastodon.Client) {
+  tuiCore.Timeline = mast.NewTimeline(mastodonClient)
+  tuiCore.App = tview.NewApplication()
+
+  tuiCore.CmdLine = tview.NewInputField().
     SetLabelColor(tcell.ColorDefault).
     SetFieldBackgroundColor(tcell.ColorDefault).
     SetDoneFunc(func(key tcell.Key) {
       // app.Stop()
     })
 
-  stream := tview.NewTextView().
+  tuiCore.Stream = tview.NewTextView().
     SetDynamicColors(true).
     SetRegions(true).
     SetWrap(true)
 
-  grid := tview.NewGrid().
+  tuiCore.Grid = tview.NewGrid().
     SetRows(0, 1).
     SetColumns(0).
     SetBorders(true).
-    AddItem(stream, 0, 0, 1, 1, 0, 0, false).
-    AddItem(input, 1, 0, 1, 1, 0, 0, true)
+    AddItem(tuiCore.Stream, 0, 0, 1, 1, 0, 0, false).
+    AddItem(tuiCore.CmdLine, 1, 0, 1, 1, 0, 0, true)
 
-  app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+  tuiCore.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
     switch event.Key() {
     case tcell.KeyCtrlR:
-      _, _, w, _ := stream.Box.GetInnerRect()
-      timeline.Load(mast.TimelineHome)
-      output, err := RenderTimeline(&timeline, w)
-      if err != nil {
-        panic(err)
-      }
-
-      input.
-        SetLabel(timeline.Account.Username + ": ").
-        SetLabelColor(tcell.ColorTeal)
-      app.SetFocus(input)
-
-      fmt.Fprint(stream, tview.TranslateANSI(output))
-
-      stream.ScrollToEnd()
+      tuiCore.UpdateTimeline(true)
       return nil
     case tcell.KeyRune:
       switch event.Rune() {
       case 'i':
-        if input.Box.HasFocus() == false {
-          app.SetFocus(input)
-          input.SetLabelColor(tcell.ColorTeal)
+        if tuiCore.EnterInsertMode() == true {
           return nil
         }
       }
     case tcell.KeyEscape:
-      if input.Box.HasFocus() == true {
-        app.SetFocus(stream)
-        input.SetLabelColor(tcell.ColorDefault)
+      if tuiCore.ExitInsertMode(false) == true {
         return nil
       }
-    // case tcell.KeyPgDn:
-    //   app.SetFocus(stream)
     }
 
     return event
   })
 
-  if err := app.SetRoot(grid, true).Run(); err != nil {
+  go func() {
+    for {
+      time.Sleep(time.Second * 2)
+      tuiCore.UpdateTimeline(true)
+
+      if tuiCore.Mode == 0 {
+        tuiCore.ExitInsertMode(true)
+      }
+
+      tuiCore.App.Draw()
+      time.Sleep(time.Second * 58)
+    }
+  }()
+
+  if err := tuiCore.App.SetRoot(tuiCore.Grid, true).Run(); err != nil {
     panic(err)
   }
+}
+
+func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {
+  _, _, w, _ := tuiCore.Stream.Box.GetInnerRect()
+
+  err := tuiCore.Timeline.Load(mast.TimelineHome)
+  if err != nil {
+    // TODO: Display errors somewhere
+    return false
+  }
+
+  output, err := RenderTimeline(&tuiCore.Timeline, w)
+
+  if err != nil {
+    // TODO: Display errors somewhere
+    return false
+  }
+
+  fmt.Fprint(tuiCore.Stream, tview.TranslateANSI(output))
+
+  if scrollToEnd == true {
+    tuiCore.Stream.ScrollToEnd()
+  }
+
+  return true
+}
+
+func (tuiCore *TUICore) EnterInsertMode() bool {
+  if tuiCore.CmdLine.Box.HasFocus() == false {
+    tuiCore.App.SetFocus(tuiCore.CmdLine)
+    tuiCore.CmdLine.SetLabelColor(tcell.ColorTeal)
+
+    tuiCore.Prompt = tuiCore.Timeline.Account.Username + ": "
+    tuiCore.CmdLine.
+      SetLabel(tuiCore.Prompt)
+
+    tuiCore.Mode = InsertMode
+    return true
+  }
+
+  return false
+}
+
+func (tuiCore *TUICore) ExitInsertMode(force bool) bool {
+  if tuiCore.CmdLine.Box.HasFocus() == true || force == true {
+    tuiCore.App.SetFocus(tuiCore.Stream)
+    tuiCore.CmdLine.SetLabelColor(tcell.ColorDefault)
+
+    tuiCore.Prompt = tuiCore.Timeline.Account.Username
+    tuiCore.CmdLine.
+      SetLabel(tuiCore.Prompt)
+
+    tuiCore.Mode = NormalMode
+    return true
+  }
+
+  return false
 }
