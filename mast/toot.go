@@ -6,6 +6,13 @@ import (
   "github.com/mattn/go-mastodon"
 )
 
+const (
+  VisibilityPublic string    = "public"
+  VisibilityPrivate          = "private"
+  VisibilityUnlisted         = "unlisted"
+  VisibilityDirect           = "direct"
+)
+
 type Toot struct {
   client                     *mastodon.Client
 

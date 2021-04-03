@@ -18,6 +18,7 @@ const (
 )
 
 type TUICore struct {
+  Client                     *mastodon.Client
   App                        *tview.Application
   CmdLine                    *tview.InputField
   Stream                     *tview.TextView
@@ -29,8 +30,8 @@ type TUICore struct {
   Timeline                   mast.Timeline
 }
 
-func TUI(tuiCore TUICore, mastodonClient *mastodon.Client) {
-  tuiCore.Timeline = mast.NewTimeline(mastodonClient)
+func TUI(tuiCore TUICore) {
+  tuiCore.Timeline = mast.NewTimeline(tuiCore.Client)
   tuiCore.App = tview.NewApplication()
 
   tuiCore.CmdLine = tview.NewInputField().
@@ -42,10 +43,14 @@ func TUI(tuiCore TUICore, mastodonClient *mastodon.Client) {
     SetDoneFunc(func(key tcell.Key) {
       if key == tcell.KeyEnter {
         cmd := tuiCore.CmdLine.GetText()
+        tuiCore.CmdLine.SetText("...")
+        retCode := mast.CmdProcessor(tuiCore.Client, cmd)
         tuiCore.CmdLine.SetText("")
-        retCode := mast.CmdProcessor(cmd)
 
-        if retCode == mast.CodeQuit {
+        switch retCode {
+        case mast.CodeOk:
+          tuiCore.UpdateTimeline(true)
+        case mast.CodeQuit:
           tuiCore.App.Stop();
         }
       }

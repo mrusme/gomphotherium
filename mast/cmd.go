@@ -1,12 +1,16 @@
 package mast
 
 import (
+  "context"
   "strings"
+
+  "github.com/mattn/go-mastodon"
 )
 
 type CmdReturnCode int
 const (
   CodeOk CmdReturnCode       = 0
+  CodeNotOk                  = 1
   CodeQuit                   = -1
 )
 
@@ -20,6 +24,16 @@ func CmdAvailable() ([]string) {
 
     "t",
     "toot",
+    "tootpublic",
+
+    "tp",
+    "tootprivate",
+
+    "tu",
+    "tootunlisted",
+
+    "td",
+    "tootdirect",
 
     "rt",
     "retoot",
@@ -84,14 +98,56 @@ func CmdAutocompleter(input string, knownUsers []string) ([]string) {
   return entries
 }
 
-func CmdProcessor(input string) (CmdReturnCode) {
-  split := strings.Split(input, " ")
-  switch split[0] {
+func CmdProcessor(mastodonClient *mastodon.Client, input string) (CmdReturnCode) {
+  split := strings.SplitN(input, " ", 2)
+  cmd := split[0]
+  args := split[1]
+
+  switch cmd {
   case "quit", "exit", "bye":
     return CodeQuit
-  case "t", "toot":
-
+  case "t", "toot", "tootpublic":
+    return CmdToot(mastodonClient, args, VisibilityPublic)
+  case "tp", "tootprivate":
+    return CmdToot(mastodonClient, args, VisibilityPrivate)
+  case "tu", "tootunlisted":
+    return CmdToot(mastodonClient, args, VisibilityUnlisted)
+  case "td", "tootdirect":
+    return CmdToot(mastodonClient, args, VisibilityUnlisted)
   }
 
   return CodeOk
 }
+
+func CmdToot(mastodonClient *mastodon.Client, content string, visibility string) (CmdReturnCode) {
+  var status string = ""
+  var spoiler string = ""
+  var sensitive bool = false
+
+  splitSensitive := strings.SplitN(content, "~~!", 2)
+  if len(splitSensitive) == 2 {
+    sensitive = true
+  }
+
+  splitSpoiler := strings.SplitN(splitSensitive[0], "~~:", 2)
+  if len(splitSpoiler) == 2 {
+    spoiler = splitSpoiler[1]
+  }
+
+  status = splitSpoiler[0]
+
+  newToot := mastodon.Toot{
+    Status: status,
+    Visibility: visibility,
+    Sensitive: sensitive,
+    SpoilerText: spoiler,
+  }
+
+  _, err := mastodonClient.PostStatus(context.Background(), &newToot)
+  if err != nil {
+    return CodeNotOk
+  }
+
+  return CodeOk
+}
+
