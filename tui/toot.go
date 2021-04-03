@@ -3,13 +3,14 @@ package tui
 import (
   "fmt"
   // "time"
+  // "context"
 
+  "github.com/mattn/go-runewidth"
   "github.com/grokify/html-strip-tags-go"
   "html"
 
   // "image/color"
   // "github.com/eliukblau/pixterm/pkg/ansimage"
-  // "context"
 
   // "github.com/mattn/go-mastodon"
   "github.com/mrusme/gomphotherium/mast"
@@ -35,7 +36,7 @@ func RenderToot(toot *mast.Toot, width int) (string, error) {
     inReplyToLen = 2
   }
 
-  output = fmt.Sprintf("%s[blue]%s[-] [grey]%s[-][magenta]%s[-][grey]%*d[-]\n", output, status.Account.DisplayName, account, inReplyTo, (width - len(string(toot.ID)) - len(status.Account.DisplayName) - len(account) - inReplyToLen), toot.ID)
+  output = fmt.Sprintf("%s[blue]%s[-] [grey]%s[-][magenta]%s[-][grey]%*d[-]\n", output, status.Account.DisplayName, account, inReplyTo, (width - len(string(toot.ID)) - runewidth.StringWidth(status.Account.DisplayName) - len(account) - inReplyToLen), toot.ID)
   output = fmt.Sprintf("%s%s\n", output, html.UnescapeString(strip.StripTags(status.Content)))
 
   // for _, attachment := range status.MediaAttachments {
