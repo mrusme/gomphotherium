@@ -36,8 +36,17 @@ func TUI(tuiCore TUICore, mastodonClient *mastodon.Client) {
   tuiCore.CmdLine = tview.NewInputField().
     SetLabelColor(tcell.ColorDefault).
     SetFieldBackgroundColor(tcell.ColorDefault).
+    SetAutocompleteFunc(mast.CmdAutocompleter).
     SetDoneFunc(func(key tcell.Key) {
-      // app.Stop()
+      if key == tcell.KeyEnter {
+        cmd := tuiCore.CmdLine.GetText()
+        tuiCore.CmdLine.SetText("")
+        retCode := mast.CmdProcessor(cmd)
+
+        if retCode == mast.CodeQuit {
+          tuiCore.App.Stop();
+        }
+      }
     })
 
   tuiCore.Stream = tview.NewTextView().
