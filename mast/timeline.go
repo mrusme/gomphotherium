@@ -24,6 +24,7 @@ type Timeline struct {
   Account                    mastodon.Account
   Toots                      []Toot
   TootIndexStatusIDMappings  map[string]int
+  KnownUsers                 []string
 }
 
 func NewTimeline(mastodonClient *mastodon.Client) Timeline {
@@ -79,6 +80,7 @@ func (timeline *Timeline) Load(timelineType TimelineType) (error) {
     if exists == false {
       tootIndex := len(timeline.Toots)
       timeline.Toots = append(timeline.Toots, NewToot(timeline.client, status, tootIndex))
+      timeline.KnownUsers = append(timeline.KnownUsers, status.Account.Acct) // TODO: Deduplicate
       timeline.TootIndexStatusIDMappings[id] = tootIndex
     }
   }
