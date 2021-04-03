@@ -17,6 +17,6 @@ func RenderTimeline(timeline *mast.Timeline, width int) (string, error) {
     output = fmt.Sprintf("%s%s\n", output, tootOutput)
   }
 
-  timeline.LastRenderedIndex = newRenderedIndex
+  timeline.LastRenderedIndex = (newRenderedIndex - 1)
   return output, err
 }

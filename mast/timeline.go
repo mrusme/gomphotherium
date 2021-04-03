@@ -71,7 +71,7 @@ func (timeline *Timeline) Load(timelineType TimelineType) (error) {
   }
 
   oldestStatusIndex := len(statuses) - 1
-  for i := oldestStatusIndex; i > 0; i-- {
+  for i := oldestStatusIndex; i >= 0; i-- {
     status := statuses[i]
 
     id := string(status.ID)
