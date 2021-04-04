@@ -87,6 +87,8 @@ func TUI(tuiCore TUICore) {
       if tuiCore.ExitInsertMode(false) == true {
         return nil
       }
+    case tcell.KeyCtrlQ:
+      tuiCore.App.Stop()
     }
 
     return event
