@@ -4,7 +4,6 @@ import (
   "strings"
   "strconv"
   "regexp"
-  "log"
   "errors"
 )
 
@@ -192,13 +191,13 @@ func CmdToot(timeline *Timeline, content string, inReplyTo int, visibility strin
   var filesToUpload []string
 
   // this is a ~#[sample] ~:[string] with ~!! special words
-
-  for _, token := range CmdContentRegex.FindAllStringSubmatch(content, -1) {
-    if token[0] == "~!!" {
+  tokens := CmdContentRegex.FindAllStringSubmatch(content, -1)
+  for _, token := range tokens {
+    if len(token[0]) >= 3 && token[0][(len(token[0])-3):] == "~!!" {
       sensitive = true
       continue
-    } else if len(token) == 4 {
-      switch token[2] {
+    } else if len(token) == 4 && len(token[2]) >= 2 {
+      switch token[2][(len(tokens[0][2])-2):] {
       case "~#":
         spoiler = token[3]
         continue
@@ -211,7 +210,6 @@ func CmdToot(timeline *Timeline, content string, inReplyTo int, visibility strin
 
   status = CmdContentRegex.ReplaceAllString(content, "")
 
-  log.Fatalln(status)
   _, err := timeline.Toot(&status, inReplyTo, filesToUpload, &visibility, sensitive, &spoiler)
   if err != nil {
     return CodeNotOk
