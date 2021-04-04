@@ -234,7 +234,7 @@ func (tuiCore *TUICore) ExitCommandMode(force bool) bool {
     tuiCore.App.SetFocus(tuiCore.Stream)
     tuiCore.CmdLine.SetLabelColor(tcell.ColorDefault)
 
-    tuiCore.Prompt = tuiCore.Timeline.Account.Username
+    tuiCore.Prompt = tuiCore.Timeline.Account.Username + "  "
     tuiCore.CmdLine.
       SetLabel(tuiCore.Prompt)
 

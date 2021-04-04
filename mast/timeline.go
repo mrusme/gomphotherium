@@ -31,7 +31,7 @@ type Timeline struct {
   Account                    mastodon.Account
   Toots                      []Toot
   TootIndexStatusIDMappings  map[string]int
-  KnownUsers                 []string
+  KnownUsers                 map[string]string
 }
 
 func NewTimeline(mastodonClient *mastodon.Client) Timeline {
@@ -41,6 +41,7 @@ func NewTimeline(mastodonClient *mastodon.Client) Timeline {
 
     LastRenderedIndex: -1,
     TootIndexStatusIDMappings: make(map[string]int),
+    KnownUsers: make(map[string]string),
   }
 
   return timeline
@@ -111,25 +112,15 @@ func (timeline *Timeline) Load() (error) {
   for i := oldestStatusIndex; i >= 0; i-- {
     status := statuses[i]
 
-    id := string(status.ID)
-    _, exists := timeline.TootIndexStatusIDMappings[id]
+    statusID := string(status.ID)
+    _, exists := timeline.TootIndexStatusIDMappings[statusID]
     if exists == false {
       tootIndex := len(timeline.Toots)
       timeline.Toots =
         append(timeline.Toots, NewToot(timeline.client, status, tootIndex))
 
-      knownUserExists := false
-      for _, knownUser := range timeline.KnownUsers {
-        if knownUser == status.Account.Acct {
-          knownUserExists = true
-        }
-      }
-      if knownUserExists == false {
-        timeline.KnownUsers =
-          append(timeline.KnownUsers, status.Account.Acct)
-      }
-
-      timeline.TootIndexStatusIDMappings[id] = tootIndex
+      timeline.TootIndexStatusIDMappings[statusID] = tootIndex
+      timeline.KnownUsers[string(status.Account.ID)] = status.Account.Acct
     }
   }
 

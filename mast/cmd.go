@@ -70,7 +70,7 @@ func CmdAvailable() ([]string) {
     "open",
     "share",
 
-    // "whois",
+    "whois",
 
     // "search",
 
@@ -83,14 +83,15 @@ func CmdAvailable() ([]string) {
   }
 }
 
-func CmdAutocompleter(input string, knownUsers []string) ([]string) {
+func CmdAutocompleter(input string, knownUsers map[string]string) ([]string) {
   var entries []string
 
   if input == "" {
     return entries
   }
 
-  if input[len(input)-1:] == "@" {
+  if input[len(input)-1:] == "@" ||
+     input == "whois " {
     for _, knownUser := range knownUsers {
       line := input + knownUser
       lineFound := false
@@ -149,6 +150,8 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
     }
 
     timeline.Switch(TimelineHashtag, &timelineOptions)
+    return CodeOk
+  case "whois":
     return CodeOk
   case "t", "toot":
     return CmdToot(timeline, args, -1, VisibilityPublic)
