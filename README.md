@@ -11,7 +11,7 @@ as a TUI with a usage similar to [rainbowstream](rainbowstream). It is intended
 to be used at 80 characters width maximum, but ideally inside [tmux][tmux] as
 a sidebar-style program.
 
-![Gomphotherium](gomphotherium.png)
+![Gomphotherium](gomphotherium.jpg)
 
 [rainbowstream]: https://github.com/orakaro/rainbowstream
 [tmux]: https://github.com/tmux/tmux
