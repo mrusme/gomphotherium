@@ -94,7 +94,17 @@ func (timeline *Timeline) Load() (error) {
     if exists == false {
       tootIndex := len(timeline.Toots)
       timeline.Toots = append(timeline.Toots, NewToot(timeline.client, status, tootIndex))
-      timeline.KnownUsers = append(timeline.KnownUsers, status.Account.Acct) // TODO: Deduplicate
+
+      knownUserExists := false
+      for _, knownUser := range timeline.KnownUsers {
+        if knownUser == status.Account.Acct {
+          knownUserExists = true
+        }
+      }
+      if knownUserExists == false {
+        timeline.KnownUsers = append(timeline.KnownUsers, status.Account.Acct)
+      }
+
       timeline.TootIndexStatusIDMappings[id] = tootIndex
     }
   }
