@@ -12,6 +12,9 @@ var tuiCmd = &cobra.Command{
   Run: func(cmd *cobra.Command, args []string) {
     tuiCore := tui.TUICore{
       Client: MastodonClient,
+      Options: tui.TUIOptions{
+        ShowImages: flagShowImages,
+      },
     }
     tui.TUI(tuiCore)
   },

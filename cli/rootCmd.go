@@ -10,6 +10,7 @@ import (
 
 var server string
 var accessToken string
+var flagShowImages bool
 // var clientID string
 // var clientSecret string
 
@@ -34,6 +35,7 @@ func init() {
 
   rootCmd.PersistentFlags().StringVar(&server, "server", LookupStrEnv("GOMPHOTHERIUM_SERVER",""), "Mastodon server")
   rootCmd.PersistentFlags().StringVar(&accessToken, "access-token", LookupStrEnv("GOMPHOTHERIUM_ACCESS_TOKEN",""), "Mastodon access token")
+  rootCmd.PersistentFlags().BoolVarP(&flagShowImages, "show-images", "i", true, "Show images in timeline")
 }
 
 func initConfig() {

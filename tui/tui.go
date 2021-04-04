@@ -17,6 +17,10 @@ const (
   InsertMode                 = 2
 )
 
+type TUIOptions struct {
+  ShowImages                 bool
+}
+
 type TUICore struct {
   Client                     *mastodon.Client
   App                        *tview.Application
@@ -29,6 +33,8 @@ type TUICore struct {
 
   Timeline                   mast.Timeline
   RenderedTimelineType       mast.TimelineType
+
+  Options                    TUIOptions
 }
 
 func TUI(tuiCore TUICore) {
@@ -122,7 +128,7 @@ func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {
     return false
   }
 
-  output, err := RenderTimeline(&tuiCore.Timeline, w)
+  output, err := RenderTimeline(&tuiCore.Timeline, w, tuiCore.Options.ShowImages)
 
   if err != nil {
     // TODO: Display errors somewhere
