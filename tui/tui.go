@@ -16,7 +16,7 @@ import (
 type ModeType int
 const (
   NormalMode ModeType        = 1
-  InsertMode                 = 2
+  CommandMode                 = 2
 )
 
 type TUIOptions struct {
@@ -90,13 +90,13 @@ func TUI(tuiCore TUICore) {
       return nil
     case tcell.KeyRune:
       switch event.Rune() {
-      case 'i':
-        if tuiCore.EnterInsertMode() == true {
+      case ':':
+        if tuiCore.EnterCommandMode() == true {
           return nil
         }
       }
     case tcell.KeyEscape:
-      if tuiCore.ExitInsertMode(false) == true {
+      if tuiCore.ExitCommandMode(false) == true {
         return nil
       }
     case tcell.KeyCtrlQ:
@@ -112,7 +112,7 @@ func TUI(tuiCore TUICore) {
       tuiCore.UpdateTimeline(true)
 
       if tuiCore.Mode == 0 {
-        tuiCore.ExitInsertMode(true)
+        tuiCore.ExitCommandMode(true)
       }
 
       tuiCore.App.Draw()
@@ -193,7 +193,7 @@ func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {
   return true
 }
 
-func (tuiCore *TUICore) EnterInsertMode() bool {
+func (tuiCore *TUICore) EnterCommandMode() bool {
   if tuiCore.CmdLine.Box.HasFocus() == false {
     tuiCore.App.SetFocus(tuiCore.CmdLine)
     tuiCore.CmdLine.SetLabelColor(tcell.ColorTeal)
@@ -202,14 +202,14 @@ func (tuiCore *TUICore) EnterInsertMode() bool {
     tuiCore.CmdLine.
       SetLabel(tuiCore.Prompt)
 
-    tuiCore.Mode = InsertMode
+    tuiCore.Mode = CommandMode
     return true
   }
 
   return false
 }
 
-func (tuiCore *TUICore) ExitInsertMode(force bool) bool {
+func (tuiCore *TUICore) ExitCommandMode(force bool) bool {
   if tuiCore.CmdLine.Box.HasFocus() == true || force == true {
     tuiCore.App.SetFocus(tuiCore.Stream)
     tuiCore.CmdLine.SetLabelColor(tcell.ColorDefault)
