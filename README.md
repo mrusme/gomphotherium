@@ -220,4 +220,4 @@ Goodbye!
 
 ### CLI
 
-TODO
+TODO: Document CLI usage. Please use `gomphotherium -h` for now.
