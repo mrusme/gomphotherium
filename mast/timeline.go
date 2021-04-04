@@ -12,12 +12,19 @@ const (
   TimelineLocal              = 1
   TimelinePublic             = 2
   TimelineNotifications      = 3
-  TimelineEnd                = 4
+  TimelineHashtag            = 4
+  TimelineEnd                = 5
 )
+
+type TimelineOptions struct {
+  IsLocal                    bool
+  Hashtag                    string
+}
 
 type Timeline struct {
   client                     *mastodon.Client
   timelineType               TimelineType
+  timelineOptions            TimelineOptions
 
   LastRenderedIndex          int
 
@@ -39,9 +46,12 @@ func NewTimeline(mastodonClient *mastodon.Client) Timeline {
   return timeline
 }
 
-func (timeline *Timeline) Switch(timelineType TimelineType) {
+func (timeline *Timeline) Switch(timelineType TimelineType, options *TimelineOptions) {
   if timeline.timelineType != timelineType {
     timeline.timelineType = timelineType
+    if options != nil {
+      timeline.timelineOptions = *options
+    }
     timeline.Toots = []Toot{}
     timeline.TootIndexStatusIDMappings = make(map[string]int)
     timeline.LastRenderedIndex = -1
@@ -83,6 +93,14 @@ func (timeline *Timeline) Load() (error) {
     for _, notification := range notifications {
       statuses = append(statuses, notification.Status)
     }
+  case TimelineHashtag:
+    statuses, err =
+      timeline.client.GetTimelineHashtag(
+        context.Background(),
+        timeline.timelineOptions.Hashtag,
+        timeline.timelineOptions.IsLocal,
+        nil,
+      )
   }
 
   if err != nil {

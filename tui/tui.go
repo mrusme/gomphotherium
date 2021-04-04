@@ -46,14 +46,14 @@ func TUI(tuiCore TUICore) {
   tview.Styles = tview.Theme{
     PrimitiveBackgroundColor:    tcell.ColorDefault,
     ContrastBackgroundColor:     tcell.ColorBlue,
-    MoreContrastBackgroundColor: tcell.ColorGreen,
+    MoreContrastBackgroundColor: tcell.ColorBlack,
     BorderColor:                 tcell.ColorWhite,
     TitleColor:                  tcell.ColorWhite,
     GraphicsColor:               tcell.ColorWhite,
     PrimaryTextColor:            tcell.ColorWhite,
-    SecondaryTextColor:          tcell.ColorYellow,
+    SecondaryTextColor:          tcell.ColorBlue,
     TertiaryTextColor:           tcell.ColorGreen,
-    InverseTextColor:            tcell.ColorBlue,
+    InverseTextColor:            tcell.ColorBlack,
     ContrastSecondaryTextColor:  tcell.ColorDarkCyan,
   }
 
@@ -61,7 +61,7 @@ func TUI(tuiCore TUICore) {
 
   tuiCore.Timeline = mast.NewTimeline(tuiCore.Client)
   tuiCore.RenderedTimelineType = mast.TimelineHome
-  tuiCore.Timeline.Switch(mast.TimelineHome)
+  tuiCore.Timeline.Switch(mast.TimelineHome, nil)
 
   tuiCore.CmdLine = tview.NewInputField().
     SetLabelColor(tcell.ColorDefault).
@@ -198,7 +198,8 @@ func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {
   }
 
   currentTimelineType := tuiCore.Timeline.GetCurrentType()
-  if tuiCore.RenderedTimelineType != currentTimelineType {
+  if tuiCore.RenderedTimelineType != currentTimelineType ||
+     currentTimelineType == mast.TimelineHashtag {
     tuiCore.Stream.Clear()
     tuiCore.RenderedTimelineType = currentTimelineType
   }

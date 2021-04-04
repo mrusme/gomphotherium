@@ -16,7 +16,7 @@ var timelineCmd = &cobra.Command{
   Long: "Display different timelines.",
   Run: func(cmd *cobra.Command, args []string) {
     timeline := mast.NewTimeline(MastodonClient)
-    timeline.Switch(mast.TimelineHome)
+    timeline.Switch(mast.TimelineHome, nil)
     timeline.Load()
     output, err := tui.RenderTimeline(&timeline, 72, flagShowImages)
     if err != nil {

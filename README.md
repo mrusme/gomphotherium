@@ -93,6 +93,7 @@ Leave **Command** mode (while in **Command** mode)
 `local` \
 `public` \
 `notifications` \
+`hashtag`*` tag [local]`* \
 Switch between timelines
 
 `t`*` content ...`* \
@@ -182,6 +183,16 @@ Add media by file path to toot; can be specified multiple times
 
 ##### Usage Examples
 
+`home` \
+Switch to the home timeline
+
+`hashtag theStudio local` \
+Switch to the hashtag timeline and search for the hashtag *#theStudio* on only
+the *local* instance
+
+`hashtag lol` \
+Switch to the hashtag timeline and search for the hashtag *#lol* globally
+
 `t Hello World!` \
 Publish a new public toot that says *Hello World!*
 
@@ -199,6 +210,12 @@ of shaving cream?*
 
 `rt 11` \
 Retoot/boost toot with ID *11*
+
+`help` \
+Show this help
+
+`bye` \
+Goodbye!
 
 
 ### CLI

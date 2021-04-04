@@ -30,6 +30,7 @@ func CmdAvailable() ([]string) {
     "local",
     "public",
     "notifications",
+    "hashtag",
 
     "t",
     "toot",
@@ -125,16 +126,29 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
 
   switch cmd {
   case "home":
-    timeline.Switch(TimelineHome)
+    timeline.Switch(TimelineHome, nil)
     return CodeOk
   case "local":
-    timeline.Switch(TimelineLocal)
+    timeline.Switch(TimelineLocal, nil)
     return CodeOk
   case "public":
-    timeline.Switch(TimelinePublic)
+    timeline.Switch(TimelinePublic, nil)
     return CodeOk
   case "notifications":
-    timeline.Switch(TimelineNotifications)
+    timeline.Switch(TimelineNotifications, nil)
+    return CodeOk
+  case "hashtag":
+    hashtag, isLocal, err := CmdHelperGetHashtagParams(args)
+    if err != nil {
+      return CodeNotOk
+    }
+
+    timelineOptions := TimelineOptions{
+      Hashtag: hashtag,
+      IsLocal: isLocal,
+    }
+
+    timeline.Switch(TimelineHashtag, &timelineOptions)
     return CodeOk
   case "t", "toot":
     return CmdToot(timeline, args, -1, VisibilityPublic)
@@ -223,6 +237,23 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
   return CodeCommandNotFound
 }
 
+func CmdHelperGetHashtagParams(args string) (string, bool, error) {
+  splitArgs := strings.SplitN(args, " ", 2)
+
+  if len(splitArgs) < 2 {
+    return args, false, nil
+  }
+
+  hashtag := splitArgs[0]
+  isLocal := false
+
+  if strings.ToLower(splitArgs[1]) == "local" {
+    isLocal = true
+  }
+
+  return hashtag, isLocal, nil
+}
+
 func CmdHelperGetTootIDFromString(s string) (int, error) {
   tootId, err := strconv.Atoi(s)
   if err != nil {
@@ -275,7 +306,6 @@ func CmdToot(
   var sensitive bool = false
   var filesToUpload []string
 
-  // this is a ~#[sample] ~:[string] with ~!! special words
   tokens := CmdContentRegex.FindAllStringSubmatch(content, -1)
   for _, token := range tokens {
     if len(token[0]) >= 3 && token[0][(len(token[0])-3):] == "~!!" {
