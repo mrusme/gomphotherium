@@ -141,3 +141,21 @@ func (timeline *Timeline) Toot(status *string, inReplyTo int, filesToUpload []st
 
   return timeline.client.PostStatus(context.Background(), &newToot)
 }
+
+func (timeline *Timeline) Boost(tootID int, shallBe bool) (*mastodon.Status, error) {
+  id := timeline.Toots[tootID].Status.ID
+
+  if shallBe == true {
+    return timeline.client.Reblog(context.Background(), id)
+  }
+  return timeline.client.Unreblog(context.Background(), id)
+}
+
+func (timeline *Timeline) Fav(tootID int, shallBe bool) (*mastodon.Status, error) {
+  id := timeline.Toots[tootID].Status.ID
+
+  if shallBe == true {
+    return timeline.client.Favourite(context.Background(), id)
+  }
+  return timeline.client.Unfavourite(context.Background(), id)
+}

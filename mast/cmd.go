@@ -51,8 +51,12 @@ func CmdAvailable() ([]string) {
     "retoot",
     "boost",
 
+    "ut",
+    "unretoot",
+    "unboost",
+
     "fav",
-    "ufav",
+    "unfav",
 
     "open",
     "share",
@@ -160,11 +164,48 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
     }
 
     return CmdToot(timeline, args, tootId, VisibilityDirect)
+  case "rt", "retoot", "boost":
+    tootId, err := CmdHelperGetBoostParams(args)
+    if err != nil {
+      return CodeNotOk
+    }
+
+    return CmdBoost(timeline, tootId)
+  case "ut", "unretoot", "unboost":
+    tootId, err := CmdHelperGetBoostParams(args)
+    if err != nil {
+      return CodeNotOk
+    }
+
+    return CmdUnboost(timeline, tootId)
+  case "fav":
+    tootId, err := CmdHelperGetFavParams(args)
+    if err != nil {
+      return CodeNotOk
+    }
+
+    return CmdFav(timeline, tootId)
+  case "unfav":
+    tootId, err := CmdHelperGetFavParams(args)
+    if err != nil {
+      return CodeNotOk
+    }
+
+    return CmdUnfav(timeline, tootId)
   case "quit", "exit", "bye":
     return CodeQuit
   }
 
   return CodeOk
+}
+
+func CmdHelperGetTootIDFromString(s string) (int, error) {
+  tootId, err := strconv.Atoi(s)
+  if err != nil {
+    return -1, errors.New("Toot ID invalid!")
+  }
+
+  return tootId, nil
 }
 
 func CmdHelperGetReplyParams(args string) (int, string, error) {
@@ -174,14 +215,22 @@ func CmdHelperGetReplyParams(args string) (int, string, error) {
     return -1, args, errors.New("Toot ID missing!")
   }
 
-  tootId, err := strconv.Atoi(splitArgs[0])
+  tootId, err := CmdHelperGetTootIDFromString(splitArgs[0])
   if err != nil {
-    return -1, args, errors.New("Toot ID invalid!")
+    return tootId, args, err
   }
 
   newArgs := splitArgs[1]
 
   return tootId, newArgs, nil
+}
+
+func CmdHelperGetBoostParams(args string) (int, error) {
+  return CmdHelperGetTootIDFromString(args)
+}
+
+func CmdHelperGetFavParams(args string) (int, error) {
+  return CmdHelperGetTootIDFromString(args)
 }
 
 func CmdToot(timeline *Timeline, content string, inReplyTo int, visibility string) (CmdReturnCode) {
@@ -211,6 +260,42 @@ func CmdToot(timeline *Timeline, content string, inReplyTo int, visibility strin
   status = CmdContentRegex.ReplaceAllString(content, "")
 
   _, err := timeline.Toot(&status, inReplyTo, filesToUpload, &visibility, sensitive, &spoiler)
+  if err != nil {
+    return CodeNotOk
+  }
+
+  return CodeOk
+}
+
+func CmdBoost(timeline *Timeline, tootID int) (CmdReturnCode) {
+  _, err := timeline.Boost(tootID, true)
+  if err != nil {
+    return CodeNotOk
+  }
+
+  return CodeOk
+}
+
+func CmdUnboost(timeline *Timeline, tootID int) (CmdReturnCode) {
+  _, err := timeline.Boost(tootID, false)
+  if err != nil {
+    return CodeNotOk
+  }
+
+  return CodeOk
+}
+
+func CmdFav(timeline *Timeline, tootID int) (CmdReturnCode) {
+  _, err := timeline.Fav(tootID, true)
+  if err != nil {
+    return CodeNotOk
+  }
+
+  return CodeOk
+}
+
+func CmdUnfav(timeline *Timeline, tootID int) (CmdReturnCode) {
+  _, err := timeline.Fav(tootID, false)
   if err != nil {
     return CodeNotOk
   }
