@@ -161,7 +161,7 @@ Quit Gomphotherium
 **Info:** \
 - `content ...` describes the text content of a toot, including 
   [inline shortcodes](#inline-shortcodes)
-_ `toot-id` describes the toot ID (number) visible on the right side of each 
+- `toot-id` describes the toot ID (number) visible on the right side of each 
   toot in the timeline
 
 ##### Inline Shortcodes
