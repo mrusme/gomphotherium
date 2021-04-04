@@ -1,10 +1,18 @@
 # Gomphotherium
 
-Gomphotherium, a command line Mastodon client.
+Gomphotherium ((*/ˌɡɒmfəˈθɪəriəm/*; "welded beast"), a command line Mastodon 
+client.
+
+## Description
+
+Gomphotherium is a Mastodon client for the command line, offering a CLI as well
+as a TUI with a usage similar to [rainbowstream](rainbowstream).
+
+[rainbowstream]: https://github.com/orakaro/rainbowstream
 
 ## Installation
 
-Use your fave package manager:
+Use your favourite package manager:
 
 ```bash
 # macOS or Linux
@@ -37,7 +45,7 @@ pkg install gomphotherium
 
 Or download a binary from the [releases][releases] page. MacOS, Linux, Windows,
 FreeBSD, and OpenBSD binaries are available, as well as Debian, RPM, and Alpine
-packages. ARM builds are also available for Linux, FreeBSD, and OpenBSD.
+packages.
 
 Or just build it yourself (requires Go 1.16+):
 
