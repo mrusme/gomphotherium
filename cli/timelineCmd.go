@@ -1,11 +1,13 @@
 package cli
 
 import (
-  // "fmt"
+  "fmt"
 
   "github.com/spf13/cobra"
+  "github.com/rivo/tview"
 
-  // "github.com/mrusme/gomphotherium/mast"
+  "github.com/mrusme/gomphotherium/mast"
+  "github.com/mrusme/gomphotherium/tui"
 )
 
 var timelineCmd = &cobra.Command{
@@ -13,7 +15,15 @@ var timelineCmd = &cobra.Command{
   Short: "Display timeline",
   Long: "Display different timelines.",
   Run: func(cmd *cobra.Command, args []string) {
-    // fmt.Printf(mast.Timeline(MastodonClient, mast.TimelineHome, 40))
+    timeline := mast.NewTimeline(MastodonClient)
+    timeline.Switch(mast.TimelineHome)
+    timeline.Load()
+    output, err := tui.RenderTimeline(&timeline, 72, flagShowImages)
+    if err != nil {
+      panic(err)
+    }
+
+    fmt.Printf(tview.TranslateANSI(output))
     return
   },
 }
