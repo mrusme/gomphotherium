@@ -5,6 +5,10 @@ import (
   "strconv"
   "regexp"
   "errors"
+  "os/exec"
+  "runtime"
+
+  "github.com/atotto/clipboard"
 )
 
 type CmdReturnCode int
@@ -192,6 +196,20 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
     }
 
     return CmdUnfav(timeline, tootId)
+  case "open":
+    tootId, err := CmdHelperGetOpenParams(args)
+    if err != nil {
+      return CodeNotOk
+    }
+
+    return CmdOpen(timeline, tootId)
+  case "share":
+    tootId, err := CmdHelperGetShareParams(args)
+    if err != nil {
+      return CodeNotOk
+    }
+
+    return CmdShare(timeline, tootId)
   case "quit", "exit", "bye":
     return CodeQuit
   }
@@ -230,6 +248,14 @@ func CmdHelperGetBoostParams(args string) (int, error) {
 }
 
 func CmdHelperGetFavParams(args string) (int, error) {
+  return CmdHelperGetTootIDFromString(args)
+}
+
+func CmdHelperGetOpenParams(args string) (int, error) {
+  return CmdHelperGetTootIDFromString(args)
+}
+
+func CmdHelperGetShareParams(args string) (int, error) {
   return CmdHelperGetTootIDFromString(args)
 }
 
@@ -296,6 +322,40 @@ func CmdFav(timeline *Timeline, tootID int) (CmdReturnCode) {
 
 func CmdUnfav(timeline *Timeline, tootID int) (CmdReturnCode) {
   _, err := timeline.Fav(tootID, false)
+  if err != nil {
+    return CodeNotOk
+  }
+
+  return CodeOk
+}
+
+func CmdOpen(timeline *Timeline, tootID int) (CmdReturnCode) {
+  var err error
+
+  url := timeline.Toots[tootID].Status.URL
+
+  switch runtime.GOOS {
+  case "darwin":
+    err = exec.Command("open", url).Start()
+  case "linux":
+    err = exec.Command("xdg-open", url).Start()
+  case "windows":
+    err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+  default:
+    err = errors.New("Platform not supported!")
+  }
+
+  if err != nil {
+    return CodeNotOk
+  }
+
+  return CodeOk
+}
+
+func CmdShare(timeline *Timeline, tootID int) (CmdReturnCode) {
+  url := timeline.Toots[tootID].Status.URL
+
+  err := clipboard.WriteAll(url)
   if err != nil {
     return CodeNotOk
   }

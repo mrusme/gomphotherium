@@ -3,6 +3,7 @@ module github.com/mrusme/gomphotherium
 go 1.15
 
 require (
+	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/eliukblau/pixterm v1.3.1
 	github.com/gdamore/tcell/v2 v2.2.0 // indirect
 	github.com/gizak/termui/v3 v3.1.0
