@@ -2,6 +2,10 @@ package mast
 
 import (
   "strings"
+  "strconv"
+  "regexp"
+  "log"
+  "errors"
 )
 
 type CmdReturnCode int
@@ -11,6 +15,7 @@ const (
   CodeQuit                   = -1
 )
 
+var CmdContentRegex = regexp.MustCompile(`(?m)(( {0,1}~#| {0,1}~:)\[([^\[\]]*)\]| {0,1}~!!)`)
 
 func CmdAvailable() ([]string) {
   return []string{
@@ -31,10 +36,6 @@ func CmdAvailable() ([]string) {
     "td",
     "tootdirect",
 
-    "rt",
-    "retoot",
-    "boost",
-
     "re",
     "reply",
 
@@ -46,6 +47,10 @@ func CmdAvailable() ([]string) {
 
     "red",
     "replydirect",
+
+    "rt",
+    "retoot",
+    "boost",
 
     "fav",
     "ufav",
@@ -121,13 +126,41 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
     timeline.Switch(TimelineNotifications)
     return CodeOk
   case "t", "toot":
-    return CmdToot(timeline, args, VisibilityPublic)
+    return CmdToot(timeline, args, -1, VisibilityPublic)
   case "tp", "tootprivate":
-    return CmdToot(timeline, args, VisibilityPrivate)
+    return CmdToot(timeline, args, -1, VisibilityPrivate)
   case "tu", "tootunlisted":
-    return CmdToot(timeline, args, VisibilityUnlisted)
+    return CmdToot(timeline, args, -1, VisibilityUnlisted)
   case "td", "tootdirect":
-    return CmdToot(timeline, args, VisibilityUnlisted)
+    return CmdToot(timeline, args, -1, VisibilityUnlisted)
+  case "re", "reply":
+    tootId, args, err := CmdHelperGetReplyParams(args)
+    if err != nil {
+      return CodeNotOk
+    }
+
+    return CmdToot(timeline, args, tootId, VisibilityPublic)
+  case "rep", "replyprivate":
+    tootId, args, err := CmdHelperGetReplyParams(args)
+    if err != nil {
+      return CodeNotOk
+    }
+
+    return CmdToot(timeline, args, tootId, VisibilityPrivate)
+  case "reu", "replyunlisted":
+    tootId, args, err := CmdHelperGetReplyParams(args)
+    if err != nil {
+      return CodeNotOk
+    }
+
+    return CmdToot(timeline, args, tootId, VisibilityUnlisted)
+  case "red", "replydirect":
+    tootId, args, err := CmdHelperGetReplyParams(args)
+    if err != nil {
+      return CodeNotOk
+    }
+
+    return CmdToot(timeline, args, tootId, VisibilityDirect)
   case "quit", "exit", "bye":
     return CodeQuit
   }
@@ -135,24 +168,51 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
   return CodeOk
 }
 
-func CmdToot(timeline *Timeline, content string, visibility string) (CmdReturnCode) {
+func CmdHelperGetReplyParams(args string) (int, string, error) {
+  splitArgs := strings.SplitN(args, " ", 2)
+
+  if len(splitArgs) < 2 {
+    return -1, args, errors.New("Toot ID missing!")
+  }
+
+  tootId, err := strconv.Atoi(splitArgs[0])
+  if err != nil {
+    return -1, args, errors.New("Toot ID invalid!")
+  }
+
+  newArgs := splitArgs[1]
+
+  return tootId, newArgs, nil
+}
+
+func CmdToot(timeline *Timeline, content string, inReplyTo int, visibility string) (CmdReturnCode) {
   var status string = ""
   var spoiler string = ""
   var sensitive bool = false
+  var filesToUpload []string
 
-  splitSensitive := strings.SplitN(content, "~~!", 2)
-  if len(splitSensitive) == 2 {
-    sensitive = true
+  // this is a ~#[sample] ~:[string] with ~!! special words
+
+  for _, token := range CmdContentRegex.FindAllStringSubmatch(content, -1) {
+    if token[0] == "~!!" {
+      sensitive = true
+      continue
+    } else if len(token) == 4 {
+      switch token[2] {
+      case "~#":
+        spoiler = token[3]
+        continue
+      case "~:":
+        filesToUpload = append(filesToUpload, token[3])
+        continue
+      }
+    }
   }
 
-  splitSpoiler := strings.SplitN(splitSensitive[0], "~~:", 2)
-  if len(splitSpoiler) == 2 {
-    spoiler = splitSpoiler[1]
-  }
+  status = CmdContentRegex.ReplaceAllString(content, "")
 
-  status = splitSpoiler[0]
-
-  _, err := timeline.Toot(&status, -1, nil, &visibility, sensitive, &spoiler)
+  log.Fatalln(status)
+  _, err := timeline.Toot(&status, inReplyTo, filesToUpload, &visibility, sensitive, &spoiler)
   if err != nil {
     return CodeNotOk
   }
