@@ -36,7 +36,7 @@ func RenderToot(toot *mast.Toot, width int, showImages bool) (string, error) {
 
   idPadding :=
     width -
-    len(string(toot.ID)) -
+    len(fmt.Sprint(toot.ID)) -
     runewidth.StringWidth(status.Account.DisplayName) -
     len(account) -
     // https://github.com/mattn/go-runewidth/issues/36
