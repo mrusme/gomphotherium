@@ -16,6 +16,7 @@ const (
   CodeOk CmdReturnCode       = 0
   CodeNotOk                  = 1
   CodeCommandNotFound        = 2
+  CodeUserNotFound           = 3
 
   CodeQuit                   = -1
   CodeHelp                   = -2
@@ -31,6 +32,8 @@ func CmdAvailable() ([]string) {
     "public",
     "notifications",
     "hashtag",
+
+    "whois",
 
     "t",
     "toot",
@@ -69,8 +72,6 @@ func CmdAvailable() ([]string) {
 
     "open",
     "share",
-
-    "whois",
 
     // "search",
 
@@ -152,6 +153,17 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
     timeline.Switch(TimelineHashtag, &timelineOptions)
     return CodeOk
   case "whois":
+    accounts, err := timeline.SearchUser(args, 1)
+    if err != nil || len(accounts) < 1 {
+      // TODO: pass info back to caller
+      return CodeUserNotFound
+    }
+
+    timelineOptions := TimelineOptions{
+      User: *accounts[0],
+    }
+
+    timeline.Switch(TimelineUser, &timelineOptions)
     return CodeOk
   case "t", "toot":
     return CmdToot(timeline, args, -1, VisibilityPublic)

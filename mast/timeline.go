@@ -13,12 +13,13 @@ const (
   TimelinePublic             = 2
   TimelineNotifications      = 3
   TimelineHashtag            = 4
-  TimelineEnd                = 5
+  TimelineUser               = 5
 )
 
 type TimelineOptions struct {
   IsLocal                    bool
   Hashtag                    string
+  User                       mastodon.Account
 }
 
 type Timeline struct {
@@ -48,7 +49,9 @@ func NewTimeline(mastodonClient *mastodon.Client) Timeline {
 }
 
 func (timeline *Timeline) Switch(timelineType TimelineType, options *TimelineOptions) {
-  if timeline.timelineType != timelineType {
+  if timeline.timelineType != timelineType ||
+    timelineType == TimelineHashtag ||
+    timelineType == TimelineUser {
     timeline.timelineType = timelineType
     if options != nil {
       timeline.timelineOptions = *options
@@ -61,6 +64,10 @@ func (timeline *Timeline) Switch(timelineType TimelineType, options *TimelineOpt
 
 func (timeline *Timeline) GetCurrentType() (TimelineType) {
   return timeline.timelineType
+}
+
+func (timeline *Timeline) GetCurrentOptions() (TimelineOptions) {
+  return timeline.timelineOptions
 }
 
 func (timeline *Timeline) Load() (error) {
@@ -100,6 +107,13 @@ func (timeline *Timeline) Load() (error) {
         context.Background(),
         timeline.timelineOptions.Hashtag,
         timeline.timelineOptions.IsLocal,
+        nil,
+      )
+  case TimelineUser:
+    statuses, err =
+      timeline.client.GetAccountStatuses(
+        context.Background(),
+        timeline.timelineOptions.User.ID,
         nil,
       )
   }
@@ -184,4 +198,10 @@ func (timeline *Timeline) Fav(
     return timeline.client.Favourite(context.Background(), id)
   }
   return timeline.client.Unfavourite(context.Background(), id)
+}
+
+func (timeline *Timeline) SearchUser(
+  query string,
+  limit int64) ([]*mastodon.Account, error) {
+  return timeline.client.AccountsSearch(context.Background(), query, limit)
 }

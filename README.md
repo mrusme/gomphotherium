@@ -96,6 +96,9 @@ Leave **Command** mode (while in **Command** mode)
 `hashtag`*` tag [local]`* \
 Switch between timelines
 
+`whois`*` user`* \
+Switch to user profile and timeline
+
 `t`*` content ...`* \
 `toot`*` content ...`* \
 Publish a new public toot
@@ -192,6 +195,9 @@ the *local* instance
 
 `hashtag lol` \
 Switch to the hashtag timeline and search for the hashtag *#lol* globally
+
+`whois mrus@merveilles.town` \
+Switch to the profile of *mrus@merveilles.town* and list his toots
 
 `t Hello World!` \
 Publish a new public toot that says *Hello World!*

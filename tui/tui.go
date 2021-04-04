@@ -27,6 +27,7 @@ type TUICore struct {
   Client                     *mastodon.Client
   App                        *tview.Application
   CmdLine                    *tview.InputField
+  Profile                    *tview.TextView
   Stream                     *tview.TextView
   Grid                       *tview.Grid
 
@@ -77,6 +78,19 @@ func TUI(tuiCore TUICore) {
 
         switch retCode {
         case mast.CodeOk:
+          if tuiCore.Timeline.GetCurrentType() == mast.TimelineUser &&
+             tuiCore.RenderedTimelineType != mast.TimelineUser {
+            tuiCore.Grid.
+              RemoveItem(tuiCore.Stream).
+              AddItem(tuiCore.Profile, 0, 0, 1, 1, 0, 0, false).
+              AddItem(tuiCore.Stream, 1, 0, 1, 1, 0, 0, false)
+          } else if tuiCore.RenderedTimelineType == mast.TimelineUser &&
+              tuiCore.Timeline.GetCurrentType() != mast.TimelineUser {
+            tuiCore.Grid.
+              RemoveItem(tuiCore.Profile).
+              RemoveItem(tuiCore.Stream).
+              AddItem(tuiCore.Stream, 0, 0, 2, 1, 0, 0, false)
+          }
           tuiCore.UpdateTimeline(true)
         case mast.CodeHelp:
           tuiCore.ShowHelp()
@@ -86,17 +100,23 @@ func TUI(tuiCore TUICore) {
       }
     })
 
+  tuiCore.Profile = tview.NewTextView().
+    SetDynamicColors(true).
+    SetRegions(true).
+    SetWrap(true).
+    SetScrollable(false)
+
   tuiCore.Stream = tview.NewTextView().
     SetDynamicColors(true).
     SetRegions(true).
     SetWrap(true)
 
   tuiCore.Grid = tview.NewGrid().
-    SetRows(0, 1).
+    SetRows(8, 0, 1).
     SetColumns(0).
     SetBorders(true).
-    AddItem(tuiCore.Stream, 0, 0, 1, 1, 0, 0, false).
-    AddItem(tuiCore.CmdLine, 1, 0, 1, 1, 0, 0, true)
+    AddItem(tuiCore.Stream, 0, 0, 2, 1, 0, 0, false).
+    AddItem(tuiCore.CmdLine, 2, 0, 1, 1, 0, 0, false)
 
   tuiCore.App.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
     switch event.Key() {
@@ -186,6 +206,15 @@ func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {
     return false
   }
 
+  currentTimelineType := tuiCore.Timeline.GetCurrentType()
+  if tuiCore.RenderedTimelineType != currentTimelineType ||
+     currentTimelineType == mast.TimelineHashtag ||
+     currentTimelineType == mast.TimelineUser {
+    tuiCore.Stream.Clear()
+    tuiCore.RenderedTimelineType = currentTimelineType
+    tuiCore.Timeline.LastRenderedIndex = -1
+  }
+
   output, err := RenderTimeline(
     &tuiCore.Timeline,
     w,
@@ -197,17 +226,29 @@ func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {
     return false
   }
 
-  currentTimelineType := tuiCore.Timeline.GetCurrentType()
-  if tuiCore.RenderedTimelineType != currentTimelineType ||
-     currentTimelineType == mast.TimelineHashtag {
-    tuiCore.Stream.Clear()
-    tuiCore.RenderedTimelineType = currentTimelineType
-  }
-
   fmt.Fprint(tuiCore.Stream, tview.TranslateANSI(output))
 
   if scrollToEnd == true {
     tuiCore.Stream.ScrollToEnd()
+  }
+
+  if currentTimelineType == mast.TimelineUser {
+    tuiCore.Profile.Clear()
+
+    options := tuiCore.Timeline.GetCurrentOptions()
+
+    profileOutput, err := RenderProfile(
+      &options.User,
+      w,
+      tuiCore.Options.ShowImages,
+    )
+
+    if err != nil {
+      // TODO: Display errors somewhere
+      return false
+    }
+
+    fmt.Fprint(tuiCore.Profile, tview.TranslateANSI(profileOutput))
   }
 
   return true
