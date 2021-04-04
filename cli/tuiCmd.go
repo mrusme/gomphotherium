@@ -15,6 +15,7 @@ var tuiCmd = &cobra.Command{
       Options: tui.TUIOptions{
         ShowImages: flagShowImages,
       },
+      Help: help,
     }
     tui.TUI(tuiCore)
   },

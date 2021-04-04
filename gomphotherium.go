@@ -1,9 +1,13 @@
 package main
 
 import (
-"github.com/mrusme/gomphotherium/cli"
+  _ "embed"
+  "github.com/mrusme/gomphotherium/cli"
 )
 
+//go:embed README.md
+var EmbeddedHelp string
+
 func main() {
-  cli.Execute()
+  cli.Execute(EmbeddedHelp)
 }

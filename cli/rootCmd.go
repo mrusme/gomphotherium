@@ -8,6 +8,7 @@ import (
   "github.com/mattn/go-mastodon"
 )
 
+var help string
 var server string
 var accessToken string
 var flagShowImages bool
@@ -23,7 +24,8 @@ var rootCmd = &cobra.Command{
   Long:  `A command line client for Mastodon.`,
 }
 
-func Execute() {
+func Execute(embeddedHelp string) {
+  help = embeddedHelp
   if err := rootCmd.Execute(); err != nil {
     fmt.Printf("%+v\n", err)
     os.Exit(-1)

@@ -9,6 +9,8 @@ import (
 
   "github.com/mattn/go-mastodon"
   "github.com/mrusme/gomphotherium/mast"
+
+  "github.com/tj/go-termd"
 )
 
 type ModeType int
@@ -35,6 +37,8 @@ type TUICore struct {
   RenderedTimelineType       mast.TimelineType
 
   Options                    TUIOptions
+
+  Help                       string
 }
 
 func TUI(tuiCore TUICore) {
@@ -59,6 +63,8 @@ func TUI(tuiCore TUICore) {
         switch retCode {
         case mast.CodeOk:
           tuiCore.UpdateTimeline(true)
+        case mast.CodeHelp:
+          tuiCore.ShowHelp()
         case mast.CodeQuit:
           tuiCore.App.Stop();
         }
@@ -117,6 +123,43 @@ func TUI(tuiCore TUICore) {
   if err := tuiCore.App.SetRoot(tuiCore.Grid, true).Run(); err != nil {
     panic(err)
   }
+}
+
+func (tuiCore *TUICore) ShowHelp() {
+  var c termd.Compiler
+
+  help := tview.NewTextView().
+    SetDynamicColors(true).
+    SetRegions(true).
+    SetWrap(true).
+    SetDoneFunc(func(key tcell.Key)() {
+      tuiCore.App.SetRoot(tuiCore.Grid, true)
+      return
+    })
+
+  // c.SyntaxHighlighter = termd.SyntaxTheme{
+  //   "keyword": termd.Style{},
+  //   "comment": termd.Style{
+  //     Color: "#323232",
+  //   },
+  //   "literal": termd.Style{
+  //     Color: "#555555",
+  //   },
+  //   "name": termd.Style{
+  //     Color: "#777777",
+  //   },
+  //   "name.function": termd.Style{
+  //     Color: "#444444",
+  //   },
+  //   "literal.string": termd.Style{
+  //     Color: "#333333",
+  //   },
+  // }
+
+  rendered := c.Compile(tuiCore.Help)
+  fmt.Fprint(help, tview.TranslateANSI(rendered))
+
+  tuiCore.App.SetRoot(help, true)
 }
 
 func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {

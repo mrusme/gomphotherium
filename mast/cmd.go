@@ -15,7 +15,10 @@ type CmdReturnCode int
 const (
   CodeOk CmdReturnCode       = 0
   CodeNotOk                  = 1
+  CodeCommandNotFound        = 2
+
   CodeQuit                   = -1
+  CodeHelp                   = -2
 )
 
 var CmdContentRegex = regexp.MustCompile(`(?m)(( {0,1}~#| {0,1}~:)\[([^\[\]]*)\]| {0,1}~!!)`)
@@ -65,9 +68,9 @@ func CmdAvailable() ([]string) {
     "open",
     "share",
 
-    "whois",
+    // "whois",
 
-    "search",
+    // "search",
 
     "help",
     "?",
@@ -210,11 +213,13 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
     }
 
     return CmdShare(timeline, tootId)
+  case "?", "help":
+    return CodeHelp
   case "quit", "exit", "bye":
     return CodeQuit
   }
 
-  return CodeOk
+  return CodeCommandNotFound
 }
 
 func CmdHelperGetTootIDFromString(s string) (int, error) {

@@ -1,6 +1,6 @@
 module github.com/mrusme/gomphotherium
 
-go 1.15
+go 1.16
 
 require (
 	github.com/atotto/clipboard v0.1.4 // indirect
@@ -12,4 +12,5 @@ require (
 	github.com/mattn/go-runewidth v0.0.12 // indirect
 	github.com/rivo/tview v0.0.0-20210312174852-ae9464cc3598 // indirect
 	github.com/spf13/cobra v1.1.3
+	github.com/tj/go-termd v0.0.1 // indirect
 )
