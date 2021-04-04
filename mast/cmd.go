@@ -21,7 +21,8 @@ const (
   CodeHelp                   = -2
 )
 
-var CmdContentRegex = regexp.MustCompile(`(?m)(( {0,1}~#| {0,1}~:)\[([^\[\]]*)\]| {0,1}~!!)`)
+var CmdContentRegex =
+  regexp.MustCompile(`(?m)(( {0,1}~#| {0,1}~:)\[([^\[\]]*)\]| {0,1}~!!)`)
 
 func CmdAvailable() ([]string) {
   return []string{
@@ -264,7 +265,11 @@ func CmdHelperGetShareParams(args string) (int, error) {
   return CmdHelperGetTootIDFromString(args)
 }
 
-func CmdToot(timeline *Timeline, content string, inReplyTo int, visibility string) (CmdReturnCode) {
+func CmdToot(
+  timeline *Timeline,
+  content string,
+  inReplyTo int,
+  visibility string) (CmdReturnCode) {
   var status string = ""
   var spoiler string = ""
   var sensitive bool = false
@@ -290,7 +295,14 @@ func CmdToot(timeline *Timeline, content string, inReplyTo int, visibility strin
 
   status = CmdContentRegex.ReplaceAllString(content, "")
 
-  _, err := timeline.Toot(&status, inReplyTo, filesToUpload, &visibility, sensitive, &spoiler)
+  _, err := timeline.Toot(
+    &status,
+    inReplyTo,
+    filesToUpload,
+    &visibility,
+    sensitive,
+    &spoiler,
+  )
   if err != nil {
     return CodeNotOk
   }

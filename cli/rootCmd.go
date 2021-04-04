@@ -35,9 +35,25 @@ func Execute(embeddedHelp string) {
 func init() {
   cobra.OnInitialize(initConfig)
 
-  rootCmd.PersistentFlags().StringVar(&server, "server", LookupStrEnv("GOMPHOTHERIUM_SERVER",""), "Mastodon server")
-  rootCmd.PersistentFlags().StringVar(&accessToken, "access-token", LookupStrEnv("GOMPHOTHERIUM_ACCESS_TOKEN",""), "Mastodon access token")
-  rootCmd.PersistentFlags().BoolVarP(&flagShowImages, "show-images", "i", true, "Show images in timeline")
+  rootCmd.PersistentFlags().StringVar(
+    &server,
+    "server",
+    LookupStrEnv("GOMPHOTHERIUM_SERVER",""),
+    "Mastodon server",
+  )
+  rootCmd.PersistentFlags().StringVar(
+    &accessToken,
+    "access-token",
+    LookupStrEnv("GOMPHOTHERIUM_ACCESS_TOKEN",""),
+    "Mastodon access token",
+  )
+  rootCmd.PersistentFlags().BoolVarP(
+    &flagShowImages,
+    "show-images",
+    "i",
+    true,
+    "Show images in timeline",
+  )
 }
 
 func initConfig() {

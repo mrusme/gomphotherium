@@ -6,7 +6,10 @@ import (
   "github.com/mrusme/gomphotherium/mast"
 )
 
-func RenderTimeline(timeline *mast.Timeline, width int, showImages bool) (string, error) {
+func RenderTimeline(
+  timeline *mast.Timeline,
+  width int,
+  showImages bool) (string, error) {
   var output string = ""
   var err error = nil
 

@@ -41,7 +41,22 @@ type TUICore struct {
   Help                       string
 }
 
+
 func TUI(tuiCore TUICore) {
+  tview.Styles = tview.Theme{
+    PrimitiveBackgroundColor:    tcell.ColorDefault,
+    ContrastBackgroundColor:     tcell.ColorBlue,
+    MoreContrastBackgroundColor: tcell.ColorGreen,
+    BorderColor:                 tcell.ColorWhite,
+    TitleColor:                  tcell.ColorWhite,
+    GraphicsColor:               tcell.ColorWhite,
+    PrimaryTextColor:            tcell.ColorWhite,
+    SecondaryTextColor:          tcell.ColorYellow,
+    TertiaryTextColor:           tcell.ColorGreen,
+    InverseTextColor:            tcell.ColorBlue,
+    ContrastSecondaryTextColor:  tcell.ColorDarkCyan,
+  }
+
   tuiCore.App = tview.NewApplication()
 
   tuiCore.Timeline = mast.NewTimeline(tuiCore.Client)
@@ -171,7 +186,11 @@ func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {
     return false
   }
 
-  output, err := RenderTimeline(&tuiCore.Timeline, w, tuiCore.Options.ShowImages)
+  output, err := RenderTimeline(
+    &tuiCore.Timeline,
+    w,
+    tuiCore.Options.ShowImages,
+  )
 
   if err != nil {
     // TODO: Display errors somewhere

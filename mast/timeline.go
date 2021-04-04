@@ -65,13 +65,17 @@ func (timeline *Timeline) Load() (error) {
 
   switch timeline.timelineType {
   case TimelineHome:
-    statuses, err = timeline.client.GetTimelineHome(context.Background(), nil)
+    statuses, err =
+      timeline.client.GetTimelineHome(context.Background(), nil)
   case TimelineLocal:
-    statuses, err = timeline.client.GetTimelinePublic(context.Background(), true, nil)
+    statuses, err =
+      timeline.client.GetTimelinePublic(context.Background(), true, nil)
   case TimelinePublic:
-    statuses, err = timeline.client.GetTimelinePublic(context.Background(), false, nil)
+    statuses, err =
+      timeline.client.GetTimelinePublic(context.Background(), false, nil)
   case TimelineNotifications:
-    notifications, err := timeline.client.GetNotifications(context.Background(), nil)
+    notifications, err :=
+      timeline.client.GetNotifications(context.Background(), nil)
     if err != nil {
       return err
     }
@@ -93,7 +97,8 @@ func (timeline *Timeline) Load() (error) {
     _, exists := timeline.TootIndexStatusIDMappings[id]
     if exists == false {
       tootIndex := len(timeline.Toots)
-      timeline.Toots = append(timeline.Toots, NewToot(timeline.client, status, tootIndex))
+      timeline.Toots =
+        append(timeline.Toots, NewToot(timeline.client, status, tootIndex))
 
       knownUserExists := false
       for _, knownUser := range timeline.KnownUsers {
@@ -102,7 +107,8 @@ func (timeline *Timeline) Load() (error) {
         }
       }
       if knownUserExists == false {
-        timeline.KnownUsers = append(timeline.KnownUsers, status.Account.Acct)
+        timeline.KnownUsers =
+          append(timeline.KnownUsers, status.Account.Acct)
       }
 
       timeline.TootIndexStatusIDMappings[id] = tootIndex
@@ -112,7 +118,13 @@ func (timeline *Timeline) Load() (error) {
   return nil
 }
 
-func (timeline *Timeline) Toot(status *string, inReplyTo int, filesToUpload []string, visibility *string, sensitive bool, spoiler *string) (*mastodon.Status, error) {
+func (timeline *Timeline) Toot(
+  status *string,
+  inReplyTo int,
+  filesToUpload []string,
+  visibility *string,
+  sensitive bool,
+  spoiler *string) (*mastodon.Status, error) {
   newToot := mastodon.Toot{
     Status: *status,
     Visibility: *visibility,
@@ -128,7 +140,8 @@ func (timeline *Timeline) Toot(status *string, inReplyTo int, filesToUpload []st
     var mediaIDs []mastodon.ID
 
     for _, fileToUpload := range filesToUpload {
-      attachment, err := timeline.client.UploadMedia(context.Background(), fileToUpload)
+      attachment, err :=
+        timeline.client.UploadMedia(context.Background(), fileToUpload)
       if err != nil {
         return nil, err
       }
@@ -142,7 +155,9 @@ func (timeline *Timeline) Toot(status *string, inReplyTo int, filesToUpload []st
   return timeline.client.PostStatus(context.Background(), &newToot)
 }
 
-func (timeline *Timeline) Boost(tootID int, shallBe bool) (*mastodon.Status, error) {
+func (timeline *Timeline) Boost(
+  tootID int,
+  shallBe bool) (*mastodon.Status, error) {
   id := timeline.Toots[tootID].Status.ID
 
   if shallBe == true {
@@ -151,7 +166,9 @@ func (timeline *Timeline) Boost(tootID int, shallBe bool) (*mastodon.Status, err
   return timeline.client.Unreblog(context.Background(), id)
 }
 
-func (timeline *Timeline) Fav(tootID int, shallBe bool) (*mastodon.Status, error) {
+func (timeline *Timeline) Fav(
+  tootID int,
+  shallBe bool) (*mastodon.Status, error) {
   id := timeline.Toots[tootID].Status.ID
 
   if shallBe == true {

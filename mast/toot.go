@@ -20,7 +20,10 @@ type Toot struct {
   Status                     mastodon.Status
 }
 
-func NewToot(mastodonClient *mastodon.Client, mastodonStatus *mastodon.Status , id int) Toot {
+func NewToot(
+  mastodonClient *mastodon.Client,
+  mastodonStatus *mastodon.Status ,
+  id int) Toot {
   toot := Toot{
     client: mastodonClient,
 
