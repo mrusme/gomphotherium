@@ -74,17 +74,29 @@ the Mastodon instance.
 
 ##### Shortcuts
 
-`Ctrl` + `Q` \
-Quit Gomphotherium
+This is a list of supported keyboard shortcuts. The information in box brackets
+tells to which mode the shortcut applies.
 
-`Ctrl` + `R` \
+`:` [normal] \
+Enter **Command** mode
+
+`Esc` [command] \
+Leave **Command** mode
+
+`ArrowUp` / `k`, `ArrowDn` / `j` [normal] \
+Scroll timeline in either direction by one line
+
+`PgUp` & `PgDn` [normal] \
+Scroll timeline in either direction by one page
+
+`g`, `G` [normal] \
+Scroll timeline to the very top/bottom
+
+`Ctrl` + `R` [any] \
 Refresh timeline
 
-`:` \
-Enter **Command** mode (while in **Normal** mode)
-
-`Esc` \
-Leave **Command** mode (while in **Command** mode)
+`Ctrl` + `Q` [any] \
+Quit Gomphotherium
 
 
 ##### Commands
