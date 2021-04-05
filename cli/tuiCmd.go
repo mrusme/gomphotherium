@@ -5,6 +5,8 @@ import (
   "github.com/mrusme/gomphotherium/tui"
 )
 
+var flagAutocompletion bool
+
 var tuiCmd = &cobra.Command{
   Use:   "tui",
   Short: "Launch TUI",
@@ -14,6 +16,7 @@ var tuiCmd = &cobra.Command{
       Client: MastodonClient,
       Options: tui.TUIOptions{
         ShowImages: flagShowImages,
+        AutoCompletion: flagAutocompletion,
       },
       Help: help,
     }
@@ -23,4 +26,11 @@ var tuiCmd = &cobra.Command{
 
 func init() {
   rootCmd.AddCommand(tuiCmd)
+  tuiCmd.Flags().BoolVarP(
+    &flagAutocompletion,
+    "auto-completion",
+    "a",
+    true,
+    "Auto-completion on command input",
+  )
 }

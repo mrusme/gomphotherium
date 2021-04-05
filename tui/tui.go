@@ -21,6 +21,7 @@ const (
 
 type TUIOptions struct {
   ShowImages                 bool
+  AutoCompletion             bool
 }
 
 type TUICore struct {
@@ -67,9 +68,6 @@ func TUI(tuiCore TUICore) {
   tuiCore.CmdLine = tview.NewInputField().
     SetLabelColor(tcell.ColorDefault).
     SetFieldBackgroundColor(tcell.ColorDefault).
-    SetAutocompleteFunc(func(input string) ([]string) {
-      return mast.CmdAutocompleter(input, tuiCore.Timeline.KnownUsers)
-    }).
     SetDoneFunc(func(key tcell.Key) {
       if key == tcell.KeyEnter {
         cmd := tuiCore.CmdLine.GetText()
@@ -99,6 +97,12 @@ func TUI(tuiCore TUICore) {
         }
       }
     })
+
+  if tuiCore.Options.AutoCompletion == true {
+    tuiCore.CmdLine.SetAutocompleteFunc(func(input string) ([]string) {
+      return mast.CmdAutocompleter(input, tuiCore.Timeline.KnownUsers)
+    })
+  }
 
   tuiCore.Profile = tview.NewTextView().
     SetDynamicColors(true).
