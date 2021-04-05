@@ -9,6 +9,7 @@ import (
   "runtime"
 
   "github.com/atotto/clipboard"
+  "github.com/mattn/go-mastodon"
 )
 
 type CmdReturnCode int
@@ -24,6 +25,8 @@ const (
 
 var CmdContentRegex =
   regexp.MustCompile(`(?m)(( {0,1}~#| {0,1}~:)\[([^\[\]]*)\]| {0,1}~!!)`)
+var CmdHandleAutoCompletionRegex =
+  regexp.MustCompile(`(?m)(^@| @|^whois @{0,1})([^ ]+)$`)
 
 func CmdAvailable() ([]string) {
   return []string{
@@ -91,21 +94,13 @@ func CmdAutocompleter(input string, knownUsers map[string]string) ([]string) {
     return entries
   }
 
-  if input[len(input)-1:] == "@" ||
-     input == "whois " {
+  handles := CmdHandleAutoCompletionRegex.FindAllStringSubmatch(input, -1)
+  if len(handles) > 0 {
+    handle := handles[0][2]
+
     for _, knownUser := range knownUsers {
-      line := input + knownUser
-      lineFound := false
-
-      for _, entry := range entries {
-        if entry == line {
-          lineFound = true
-          break;
-        }
-      }
-
-      if lineFound == false {
-        entries = append(entries, line)
+      if strings.HasPrefix(knownUser, handle) == true {
+        entries = append(entries, input + knownUser[len(handle):])
       }
     }
 
@@ -157,14 +152,26 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
     timeline.Switch(TimelineHashtag, &timelineOptions)
     return CodeOk
   case "whois":
-    accounts, err := timeline.SearchUser(args, 1)
-    if err != nil || len(accounts) < 1 {
-      // TODO: pass info back to caller
-      return CodeUserNotFound
+    var account *mastodon.Account
+    var err error
+
+    accountID, accountKnown := timeline.KnownUsers[args]
+    if accountKnown == true {
+      account, err = timeline.User(accountID)
+    }
+
+    if accountKnown == false || err != nil {
+      accounts, err := timeline.SearchUser(args, 1)
+      if err != nil || len(accounts) < 1 {
+        // TODO: pass info back to caller
+        return CodeUserNotFound
+      }
+
+      account = accounts[0]
     }
 
     timelineOptions := TimelineOptions{
-      User: *accounts[0],
+      User: *account,
     }
 
     timeline.Switch(TimelineUser, &timelineOptions)

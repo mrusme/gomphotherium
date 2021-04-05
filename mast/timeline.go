@@ -207,8 +207,14 @@ func (timeline *Timeline) Fav(
   return timeline.client.Unfavourite(context.Background(), id)
 }
 
+func (timeline *Timeline) User(
+  ID string) (*mastodon.Account, error) {
+  return timeline.client.GetAccount(context.Background(), mastodon.ID(ID))
+}
+
 func (timeline *Timeline) SearchUser(
   query string,
   limit int64) ([]*mastodon.Account, error) {
   return timeline.client.AccountsSearch(context.Background(), query, limit)
 }
+
