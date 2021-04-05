@@ -55,11 +55,11 @@ func RenderToot(toot *mast.Toot, width int, showImages bool) (string, error) {
     // https://docs.joinmastodon.org/entities/notification/#type
     switch notification.Type {
     case "follow":
-      notificationText = fmt.Sprintf("[red]%s followed you[-]",
+      notificationText = fmt.Sprintf("[red]\xe2\x98\xba\xef\xb8\x8e %s followed you[-]",
         notificationAccount,
       )
     case "follow_request":
-      notificationText = fmt.Sprintf("[blue]%s requested to follow you[-]",
+      notificationText = fmt.Sprintf("[blue]\xe2\x98\x95 %s requested to follow you[-]",
         notificationAccount,
       )
     case "mention":
@@ -75,11 +75,11 @@ func RenderToot(toot *mast.Toot, width int, showImages bool) (string, error) {
         notificationAccount,
       )
     case "poll":
-      notificationText = fmt.Sprintf("[grey]A poll by %s has ended[-]",
+      notificationText = fmt.Sprintf("[grey]\xe2\x9c\x8e A poll by %s has ended[-]",
         notificationAccount,
       )
     case "status":
-      notificationText = fmt.Sprintf("[grey]%s posted a toot[-]",
+      notificationText = fmt.Sprintf("[grey]\xe2\x9c\x8c\xef\xb8\x8e %s posted a toot[-]",
         notificationAccount,
       )
     }
