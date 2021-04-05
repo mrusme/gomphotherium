@@ -55,7 +55,7 @@ func RenderProfile(
 
   for i := 0; i < fieldsNumber; i++ {
     field := profile.Fields[i]
-    output = fmt.Sprintf("%s[grey]%s:[-] [magenta]%s[-]\n",
+    output = fmt.Sprintf("%s[grey]%s:[-] [purple]%s[-]\n",
       output,
       runewidth.Truncate(
         field.Name,

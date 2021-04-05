@@ -18,17 +18,26 @@ type Toot struct {
 
   ID                         int
   Status                     mastodon.Status
+
+  IsNotification             bool
+  Notification               mastodon.Notification
 }
 
 func NewToot(
   mastodonClient *mastodon.Client,
-  mastodonStatus *mastodon.Status ,
+  mastodonStatus *mastodon.Status,
+  mastodonNotification *mastodon.Notification,
   id int) Toot {
   toot := Toot{
     client: mastodonClient,
 
     ID: id,
     Status: *mastodonStatus,
+  }
+
+  if mastodonNotification != nil {
+    toot.IsNotification = true
+    toot.Notification = *mastodonNotification
   }
 
   return toot

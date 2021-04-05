@@ -42,7 +42,55 @@ func RenderToot(toot *mast.Toot, width int, showImages bool) (string, error) {
     // https://github.com/mattn/go-runewidth/issues/36
     runewidth.StringWidth(inReplyTo)
 
-  output = fmt.Sprintf("%s[blue]%s[-] [grey]%s[-][magenta]%s[-][grey]%*d[-]\n",
+  if toot.IsNotification == true {
+    notification := &toot.Notification
+
+    notificationText := ""
+
+    notificationAccount := notification.Account.Acct
+    if notificationAccount == "" {
+      notificationAccount = notification.Account.Username
+    }
+
+    // https://docs.joinmastodon.org/entities/notification/#type
+    switch notification.Type {
+    case "follow":
+      notificationText = fmt.Sprintf("[red]%s followed you[-]",
+        notificationAccount,
+      )
+    case "follow_request":
+      notificationText = fmt.Sprintf("[blue]%s requested to follow you[-]",
+        notificationAccount,
+      )
+    case "mention":
+      notificationText = fmt.Sprintf("[purple]\xe2\x86\xab %s mentioned you[-]",
+        notificationAccount,
+      )
+    case "reblog":
+      notificationText = fmt.Sprintf("[green]\xe2\x86\xbb %s boosted your toot[-]",
+        notificationAccount,
+      )
+    case "favourite":
+      notificationText = fmt.Sprintf("[yellow]\xe2\x98\x85 %s faved your toot[-]",
+        notificationAccount,
+      )
+    case "poll":
+      notificationText = fmt.Sprintf("[grey]A poll by %s has ended[-]",
+        notificationAccount,
+      )
+    case "status":
+      notificationText = fmt.Sprintf("[grey]%s posted a toot[-]",
+        notificationAccount,
+      )
+    }
+
+    output = fmt.Sprintf("%s%s\n",
+      output,
+      notificationText,
+    )
+  }
+
+  output = fmt.Sprintf("%s[blue]%s[-] [grey]%s[-][purple]%s[-][grey]%*d[-]\n",
     output,
     status.Account.DisplayName,
     account,
@@ -71,7 +119,7 @@ func RenderToot(toot *mast.Toot, width int, showImages bool) (string, error) {
     }
   }
 
-  output = fmt.Sprintf("%s[magenta]\xe2\x86\xab %d[-] ",
+  output = fmt.Sprintf("%s[purple]\xe2\x86\xab %d[-] ",
     output,
     status.RepliesCount,
   )

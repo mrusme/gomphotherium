@@ -72,6 +72,7 @@ func (timeline *Timeline) GetCurrentOptions() (TimelineOptions) {
 
 func (timeline *Timeline) Load() (error) {
   var statuses []*mastodon.Status
+  var notifications []*mastodon.Notification
   var err error
 
   account, err := timeline.client.GetAccountCurrentUser(context.Background())
@@ -92,7 +93,7 @@ func (timeline *Timeline) Load() (error) {
     statuses, err =
       timeline.client.GetTimelinePublic(context.Background(), false, nil)
   case TimelineNotifications:
-    notifications, err :=
+    notifications, err =
       timeline.client.GetNotifications(context.Background(), nil)
     if err != nil {
       return err
@@ -123,15 +124,21 @@ func (timeline *Timeline) Load() (error) {
   }
 
   oldestStatusIndex := len(statuses) - 1
+  oldestNotificationIndex := len(notifications) - 1
   for i := oldestStatusIndex; i >= 0; i-- {
     status := statuses[i]
+    var notification *mastodon.Notification = nil
+
+    if oldestNotificationIndex >= i {
+      notification = notifications[i]
+    }
 
     statusID := string(status.ID)
     _, exists := timeline.TootIndexStatusIDMappings[statusID]
     if exists == false {
       tootIndex := len(timeline.Toots)
       timeline.Toots =
-        append(timeline.Toots, NewToot(timeline.client, status, tootIndex))
+        append(timeline.Toots, NewToot(timeline.client, status, notification, tootIndex))
 
       timeline.TootIndexStatusIDMappings[statusID] = tootIndex
       timeline.KnownUsers[string(status.Account.ID)] = status.Account.Acct
