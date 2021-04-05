@@ -114,7 +114,7 @@ func CmdAutocompleter(input string, knownUsers map[string]string) ([]string) {
 
   for _, cmd := range CmdAvailable() {
     if strings.HasPrefix(cmd, input) == true {
-      entries = append(entries, cmd + " ")
+      entries = append(entries, cmd)
     }
   }
 
@@ -124,7 +124,11 @@ func CmdAutocompleter(input string, knownUsers map[string]string) ([]string) {
 func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
   split := strings.SplitN(input, " ", 2)
   cmd := split[0]
-  args := split[1]
+
+  args := ""
+  if len(split) == 2 {
+    args = split[1]
+  }
 
   switch cmd {
   case "home":
