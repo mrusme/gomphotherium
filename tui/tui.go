@@ -47,12 +47,12 @@ type TUICore struct {
 func TUI(tuiCore TUICore) {
   tview.Styles = tview.Theme{
     PrimitiveBackgroundColor:    tcell.ColorDefault,
-    ContrastBackgroundColor:     tcell.ColorBlue,
-    MoreContrastBackgroundColor: tcell.ColorBlack,
+    ContrastBackgroundColor:     tcell.ColorTeal,
+    MoreContrastBackgroundColor: tcell.ColorTeal,
     BorderColor:                 tcell.ColorWhite,
     TitleColor:                  tcell.ColorWhite,
     GraphicsColor:               tcell.ColorWhite,
-    PrimaryTextColor:            tcell.ColorWhite,
+    PrimaryTextColor:            tcell.ColorDefault,
     SecondaryTextColor:          tcell.ColorBlue,
     TertiaryTextColor:           tcell.ColorGreen,
     InverseTextColor:            tcell.ColorBlack,

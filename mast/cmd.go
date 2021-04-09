@@ -256,7 +256,7 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
     return CmdShare(timeline, tootId)
   case "?", "help":
     return CodeHelp
-  case "quit", "exit", "bye":
+  case "quit", "exit", "bye", "q":
     return CodeQuit
   }
 
