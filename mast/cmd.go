@@ -18,9 +18,16 @@ const (
   CodeNotOk                  = 1
   CodeCommandNotFound        = 2
   CodeUserNotFound           = 3
+  CodeTriggerNotSupported    = 4
 
   CodeQuit                   = -1
   CodeHelp                   = -2
+)
+
+type CmdTrigger int
+const (
+  TriggerCLI                 = 0
+  TriggerTUI                 = 1
 )
 
 var CmdContentRegex =
@@ -116,7 +123,7 @@ func CmdAutocompleter(input string, knownUsers map[string]string) ([]string) {
   return entries
 }
 
-func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
+func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) (CmdReturnCode) {
   split := strings.SplitN(input, " ", 2)
   cmd := split[0]
 
@@ -152,6 +159,10 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
     timeline.Switch(TimelineHashtag, &timelineOptions)
     return CodeOk
   case "whois":
+    if trigger != TriggerTUI {
+      return CodeTriggerNotSupported
+    }
+
     var account *mastodon.Account
     var err error
 
@@ -185,6 +196,10 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
   case "td", "tootdirect":
     return CmdToot(timeline, args, -1, VisibilityUnlisted)
   case "re", "reply":
+    if trigger != TriggerTUI {
+      return CodeTriggerNotSupported
+    }
+
     tootId, args, err := CmdHelperGetReplyParams(args)
     if err != nil {
       return CodeNotOk
@@ -192,6 +207,10 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
 
     return CmdToot(timeline, args, tootId, VisibilityPublic)
   case "rep", "replyprivate":
+    if trigger != TriggerTUI {
+      return CodeTriggerNotSupported
+    }
+
     tootId, args, err := CmdHelperGetReplyParams(args)
     if err != nil {
       return CodeNotOk
@@ -199,6 +218,10 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
 
     return CmdToot(timeline, args, tootId, VisibilityPrivate)
   case "reu", "replyunlisted":
+    if trigger != TriggerTUI {
+      return CodeTriggerNotSupported
+    }
+
     tootId, args, err := CmdHelperGetReplyParams(args)
     if err != nil {
       return CodeNotOk
@@ -206,6 +229,10 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
 
     return CmdToot(timeline, args, tootId, VisibilityUnlisted)
   case "red", "replydirect":
+    if trigger != TriggerTUI {
+      return CodeTriggerNotSupported
+    }
+
     tootId, args, err := CmdHelperGetReplyParams(args)
     if err != nil {
       return CodeNotOk
@@ -213,6 +240,10 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
 
     return CmdToot(timeline, args, tootId, VisibilityDirect)
   case "rt", "retoot", "boost":
+    if trigger != TriggerTUI {
+      return CodeTriggerNotSupported
+    }
+
     tootId, err := CmdHelperGetBoostParams(args)
     if err != nil {
       return CodeNotOk
@@ -220,6 +251,10 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
 
     return CmdBoost(timeline, tootId)
   case "ut", "unretoot", "unboost":
+    if trigger != TriggerTUI {
+      return CodeTriggerNotSupported
+    }
+
     tootId, err := CmdHelperGetBoostParams(args)
     if err != nil {
       return CodeNotOk
@@ -227,6 +262,10 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
 
     return CmdUnboost(timeline, tootId)
   case "fav":
+    if trigger != TriggerTUI {
+      return CodeTriggerNotSupported
+    }
+
     tootId, err := CmdHelperGetFavParams(args)
     if err != nil {
       return CodeNotOk
@@ -234,6 +273,10 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
 
     return CmdFav(timeline, tootId)
   case "unfav":
+    if trigger != TriggerTUI {
+      return CodeTriggerNotSupported
+    }
+
     tootId, err := CmdHelperGetFavParams(args)
     if err != nil {
       return CodeNotOk
@@ -241,6 +284,10 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
 
     return CmdUnfav(timeline, tootId)
   case "open":
+    if trigger != TriggerTUI {
+      return CodeTriggerNotSupported
+    }
+
     tootId, err := CmdHelperGetOpenParams(args)
     if err != nil {
       return CodeNotOk
@@ -248,6 +295,10 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
 
     return CmdOpen(timeline, tootId)
   case "share":
+    if trigger != TriggerTUI {
+      return CodeTriggerNotSupported
+    }
+
     tootId, err := CmdHelperGetShareParams(args)
     if err != nil {
       return CodeNotOk
@@ -255,8 +306,16 @@ func CmdProcessor(timeline *Timeline, input string) (CmdReturnCode) {
 
     return CmdShare(timeline, tootId)
   case "?", "help":
+    if trigger != TriggerTUI {
+      return CodeTriggerNotSupported
+    }
+
     return CodeHelp
   case "quit", "exit", "bye", "q":
+    if trigger != TriggerTUI {
+      return CodeTriggerNotSupported
+    }
+
     return CodeQuit
   }
 

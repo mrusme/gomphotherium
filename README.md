@@ -238,4 +238,14 @@ Goodbye!
 
 ### CLI
 
-TODO: Document CLI usage. Please use `gomphotherium -h` for now.
+The CLI interface allows for exectuion of commands right from the terminal
+prompt. Not all commands are supported.
+
+
+#### Usage Examples
+
+`gomphotherium cmd home` \
+Render the home timeline
+
+`gomphotherium cmd t Hello World!` \
+Publish a new public toot that says *Hello World!*
