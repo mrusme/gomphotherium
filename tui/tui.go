@@ -128,10 +128,37 @@ func TUI(tuiCore TUICore) {
       tuiCore.UpdateTimeline(true)
       return nil
     case tcell.KeyRune:
-      switch event.Rune() {
+      eventRune := event.Rune()
+      switch eventRune {
       case ':':
         if tuiCore.EnterCommandMode() == true {
           return nil
+        }
+      case 'u', 'd', 'b', 'f':
+        if tuiCore.Mode == NormalMode {
+          _, _, _, h := tuiCore.Stream.Box.GetRect()
+          currentLine, _ := tuiCore.Stream.GetScrollOffset()
+
+          var scrollLength int = 0
+          if eventRune == 'u' || eventRune == 'd' {
+            scrollLength = int((h / 2))
+          } else if eventRune == 'b' || eventRune == 'f' {
+            scrollLength = h
+          }
+
+          var scrollTo int = currentLine
+
+          if eventRune == 'u' || eventRune == 'b' {
+            scrollTo = currentLine - scrollLength
+          } else if eventRune == 'd' || eventRune == 'f' {
+            scrollTo = currentLine + scrollLength
+          }
+
+          if scrollTo < 0 {
+            scrollTo = 0
+          }
+
+          tuiCore.Stream.ScrollTo(scrollTo, 0)
         }
       }
     case tcell.KeyEscape:
