@@ -5,6 +5,7 @@ import (
   "strconv"
   "regexp"
   "errors"
+  "os"
   "os/exec"
   "runtime"
 
@@ -462,21 +463,24 @@ func CmdUnfav(timeline *Timeline, tootID int) (CmdReturnCode) {
 }
 
 func CmdOpen(timeline *Timeline, tootID int) (CmdReturnCode) {
-  var err error
+  var cmd *exec.Cmd
 
   url := timeline.Toots[tootID].Status.URL
 
   switch runtime.GOOS {
   case "darwin":
-    err = exec.Command("open", url).Start()
+    cmd = exec.Command("open", url)
   case "linux":
-    err = exec.Command("xdg-open", url).Start()
+    cmd = exec.Command("xdg-open", url)
   case "windows":
-    err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+    cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
   default:
-    err = errors.New("Platform not supported!")
+    // errors.New("Platform not supported!")
+    return CodeNotOk
   }
 
+  cmd.Env = append(os.Environ())
+  err := cmd.Start()
   if err != nil {
     return CodeNotOk
   }
