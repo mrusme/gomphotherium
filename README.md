@@ -86,8 +86,11 @@ Leave **Command** mode
 `ArrowUp` / `k`, `ArrowDn` / `j` [normal] \
 Scroll timeline in either direction by one line
 
-`PgUp` & `PgDn` [normal] \
+`PgUp`/`b` & `PgDn`/`f` [normal] \
 Scroll timeline in either direction by one page
+
+`u` & `d` [normal] \
+Scroll timeline in either direction by half a page
 
 `g`, `G` [normal] \
 Scroll timeline to the very top/bottom
