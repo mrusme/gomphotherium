@@ -3,6 +3,14 @@
 Gomphotherium (*/ˌɡɒmfəˈθɪəriəm/*; "welded beast"), a command line Mastodon 
 client.
 
+## Info
+
+As [I have left](https://xn--gckvb8fzb.com/project-updates-q3-2021/#gomphotherium) 
+the Fediverse for now, this project is dormant and won't be updated any longer.
+It is however in a usable state and does everything a basic CLI/TUI client is
+supposed to do. I will however continue to accept PRs. If you're interested in
+actively maintaining it, feel free to ping me.
+
 
 ## Description
 
