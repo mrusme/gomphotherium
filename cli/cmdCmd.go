@@ -1,52 +1,52 @@
 package cli
 
 import (
-	"fmt"
-	"os"
-	"strings"
+  "fmt"
+  "os"
+  "strings"
 
-	"github.com/rivo/tview"
-	"github.com/spf13/cobra"
+  "github.com/rivo/tview"
+  "github.com/spf13/cobra"
 
-	"github.com/mrusme/gomphotherium/mast"
-	"github.com/mrusme/gomphotherium/tui"
+  "github.com/mrusme/gomphotherium/mast"
+  "github.com/mrusme/gomphotherium/tui"
 )
 
 var cmdCmd = &cobra.Command{
-	Use:   "cmd",
-	Short: "Run command",
-	Long:  "Run command directly from the command line.",
-	Run: func(cmd *cobra.Command, args []string) {
-		timeline := mast.NewTimeline(MastodonClient)
-		cmdReturn, loadTimeline := mast.CmdProcessor(
-			&timeline,
-			strings.Join(args, " "),
-			mast.TriggerCLI,
-		)
+  Use:   "cmd",
+  Short: "Run command",
+  Long:  "Run command directly from the command line.",
+  Run: func(cmd *cobra.Command, args []string) {
+    timeline := mast.NewTimeline(MastodonClient)
+    cmdReturn, loadTimeline := mast.CmdProcessor(
+      &timeline,
+      strings.Join(args, " "),
+      mast.TriggerCLI,
+    )
 
-		switch cmdReturn {
-		case mast.CodeOk:
-			if loadTimeline == true {
-				timeline.Load()
-				output, err := tui.RenderTimeline(&timeline, 72, flagShowImages)
-				if err != nil {
-					panic(err)
-				}
+    switch cmdReturn {
+    case mast.CodeOk:
+      if loadTimeline == true {
+        timeline.Load()
+        output, err := tui.RenderTimeline(&timeline, 72, flagShowImages)
+        if err != nil {
+          panic(err)
+        }
 
-				fmt.Printf(tview.TranslateANSI(output))
-			}
-		case mast.CodeTriggerNotSupported:
-			fmt.Printf("Command not supported from CLI!\n")
-			os.Exit(-1)
-		default:
-			fmt.Printf("%v\n", cmdReturn)
-			os.Exit(-1)
-		}
+        fmt.Printf(tview.TranslateANSI(output))
+      }
+    case mast.CodeTriggerNotSupported:
+      fmt.Printf("Command not supported from CLI!\n")
+      os.Exit(-1)
+    default:
+      fmt.Printf("%v\n", cmdReturn)
+      os.Exit(-1)
+    }
 
-		return
-	},
+    return
+  },
 }
 
 func init() {
-	rootCmd.AddCommand(cmdCmd)
+  rootCmd.AddCommand(cmdCmd)
 }
