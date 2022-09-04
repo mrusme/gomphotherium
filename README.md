@@ -1,4 +1,5 @@
-# Gomphotherium
+Gomphotherium
+-------------
 
 Gomphotherium (*/ˌɡɒmfəˈθɪəriəm/*; "welded beast"), a command line Mastodon 
 client.
@@ -85,29 +86,29 @@ the Mastodon instance.
 This is a list of supported keyboard shortcuts. The information in box brackets
 tells to which mode the shortcut applies.
 
-`:` [normal] \
-Enter **Command** mode
+- `:` [normal] \
+  Enter **Command** mode
 
-`Esc` [command] \
-Leave **Command** mode
+- `Esc` [command] \
+  Leave **Command** mode
 
-`ArrowUp` / `k`, `ArrowDn` / `j` [normal] \
-Scroll timeline in either direction by one line
+- `ArrowUp` / `k`, `ArrowDn` / `j` [normal] \
+  Scroll timeline in either direction by one line
 
-`PgUp` / `b`, `PgDn` / `f` [normal] \
-Scroll timeline in either direction by one page
+- `PgUp` / `b`, `PgDn` / `f` [normal] \
+  Scroll timeline in either direction by one page
 
-`u`, `d` [normal] \
-Scroll timeline in either direction by half a page
+- `u`, `d` [normal] \
+  Scroll timeline in either direction by half a page
 
-`g`, `G` [normal] \
-Scroll timeline to the very top/bottom
+- `g`, `G` [normal] \
+  Scroll timeline to the very top/bottom
 
-`Ctrl` + `R` [any] \
-Refresh timeline
+- `Ctrl` + `R` [any] \
+  Refresh timeline
 
-`Ctrl` + `Q` [any] \
-Quit Gomphotherium
+- `Ctrl` + `Q` [any] \
+  Quit Gomphotherium
 
 
 ##### Commands
@@ -219,8 +220,8 @@ the *local* instance
 `hashtag lol` \
 Switch to the hashtag timeline and search for the hashtag *#lol* globally
 
-`whois mrus@merveilles.town` \
-Switch to the profile of *mrus@merveilles.town* and list his toots
+`whois user@server.com` \
+Switch to the profile of *user@server.com* and list his toots
 
 `t Hello World!` \
 Publish a new public toot that says *Hello World!*
