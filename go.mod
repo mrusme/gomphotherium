@@ -5,13 +5,13 @@ go 1.18
 require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/eliukblau/pixterm v1.3.1
-	github.com/gdamore/tcell/v2 v2.5.2
+	github.com/gdamore/tcell/v2 v2.5.3
 	github.com/gizak/termui/v3 v3.1.0
 	github.com/grokify/html-strip-tags-go v0.0.1
 	github.com/mattn/go-mastodon v0.0.5
-	github.com/mattn/go-runewidth v0.0.13
-	github.com/rivo/tview v0.0.0-20220801133142-711ef394f9b3
-	github.com/spf13/cobra v1.5.0
+	github.com/mattn/go-runewidth v0.0.14
+	github.com/rivo/tview v0.0.0-20221029100920-c4a7e501810d
+	github.com/spf13/cobra v1.6.1
 	github.com/tj/go-termd v0.0.1
 )
 
@@ -31,14 +31,14 @@ require (
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
+	github.com/inconshreveable/mousetrap v1.0.1 // indirect
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-tty v0.0.3 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/prometheus/tsdb v0.7.1 // indirect
-	github.com/rivo/uniseg v0.3.1 // indirect
+	github.com/rivo/uniseg v0.4.2 // indirect
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
@@ -51,9 +51,9 @@ require (
 	github.com/urfave/cli v1.20.0 // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
 	go.etcd.io/bbolt v1.3.2 // indirect
-	golang.org/x/image v0.0.0-20220722155232-062f8c9fd539 // indirect
-	golang.org/x/sys v0.0.0-20220731174439-a90be440212d // indirect
-	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035 // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/image v0.1.0 // indirect
+	golang.org/x/sys v0.2.0 // indirect
+	golang.org/x/term v0.2.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	gopkg.in/resty.v1 v1.12.0 // indirect
 )
