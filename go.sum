@@ -362,6 +362,8 @@ github.com/mattn/go-mastodon v0.0.5-0.20200727014106-315df7d9162e h1:j6N81C3ganb
 github.com/mattn/go-mastodon v0.0.5-0.20200727014106-315df7d9162e/go.mod h1:CZ3bPYRNGgvMZr4d/SNMvCObyCQvTgCXdIOrW040z5U=
 github.com/mattn/go-mastodon v0.0.5 h1:P0e1/R2v3ho6kM7BUW0noQm8gAqHE0p8Gq1TMapIVAc=
 github.com/mattn/go-mastodon v0.0.5/go.mod h1:cg7RFk2pcUfHZw/IvKe1FUzmlq5KnLFqs7eV2PHplV8=
+github.com/mattn/go-mastodon v0.0.6 h1:lqU1sOeeIapaDsDUL6udDZIzMb2Wqapo347VZlaOzf0=
+github.com/mattn/go-mastodon v0.0.6/go.mod h1:cg7RFk2pcUfHZw/IvKe1FUzmlq5KnLFqs7eV2PHplV8=
 github.com/mattn/go-runewidth v0.0.2/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
 github.com/mattn/go-runewidth v0.0.6 h1:V2iyH+aX9C5fsYCpK60U8BYIvmhqxuOL3JZcqc1NB7k=
 github.com/mattn/go-runewidth v0.0.6/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
@@ -442,6 +444,8 @@ github.com/rivo/tview v0.0.0-20220801133142-711ef394f9b3 h1:gAT0XOEOwYJboaU9CIjJ
 github.com/rivo/tview v0.0.0-20220801133142-711ef394f9b3/go.mod h1:8NHTlQK5nUcLMAPupYd8thZnu/6jlEWYdJZNcaggXFw=
 github.com/rivo/tview v0.0.0-20221029100920-c4a7e501810d h1:jKIUJdMcIVGOSHi6LSqJqw9RqblyblE2ZrHvFbWR3S0=
 github.com/rivo/tview v0.0.0-20221029100920-c4a7e501810d/go.mod h1:YX2wUZOcJGOIycErz2s9KvDaP0jnWwRCirQMPLPpQ+Y=
+github.com/rivo/tview v0.0.0-20221117065207-09f052e6ca98 h1:0nVxhPi+jdqG11c3n4zTcZQbjGy0yi60ym/6B+NITPU=
+github.com/rivo/tview v0.0.0-20221117065207-09f052e6ca98/go.mod h1:YX2wUZOcJGOIycErz2s9KvDaP0jnWwRCirQMPLPpQ+Y=
 github.com/rivo/uniseg v0.1.0 h1:+2KBaVoUmb9XzDsrx/Ct0W/EYOSFf/nWTauy++DprtY=
 github.com/rivo/uniseg v0.1.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/rivo/uniseg v0.2.0 h1:S1pD9weZBuJdFmowNwbpi7BJ8TNftyUImj/0WQi72jY=
@@ -450,6 +454,8 @@ github.com/rivo/uniseg v0.3.1 h1:SDPP7SHNl1L7KrEFCSJslJ/DM9DT02Nq2C61XrfHMmk=
 github.com/rivo/uniseg v0.3.1/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
 github.com/rivo/uniseg v0.4.2 h1:YwD0ulJSJytLpiaWua0sBDusfsCZohxjxzVTYjwxfV8=
 github.com/rivo/uniseg v0.4.2/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
+github.com/rivo/uniseg v0.4.3 h1:utMvzDsuh3suAEnhH0RdHmoPbU648o6CvXxTx4SBMOw=
+github.com/rivo/uniseg v0.4.3/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
 github.com/rogpeppe/fastuuid v0.0.0-20150106093220-6724a57986af/go.mod h1:XWv6SoW27p1b0cqNHllgS5HIMJraePCO15w5zCzIWYg=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=

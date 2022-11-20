@@ -1,6 +1,6 @@
 module github.com/mrusme/gomphotherium
 
-go 1.18
+go 1.19
 
 require (
 	github.com/atotto/clipboard v0.1.4
@@ -8,9 +8,9 @@ require (
 	github.com/gdamore/tcell/v2 v2.5.3
 	github.com/gizak/termui/v3 v3.1.0
 	github.com/grokify/html-strip-tags-go v0.0.1
-	github.com/mattn/go-mastodon v0.0.5
+	github.com/mattn/go-mastodon v0.0.6
 	github.com/mattn/go-runewidth v0.0.14
-	github.com/rivo/tview v0.0.0-20221029100920-c4a7e501810d
+	github.com/rivo/tview v0.0.0-20221117065207-09f052e6ca98
 	github.com/spf13/cobra v1.6.1
 	github.com/tj/go-termd v0.0.1
 )
@@ -38,7 +38,7 @@ require (
 	github.com/mattn/go-tty v0.0.3 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/prometheus/tsdb v0.7.1 // indirect
-	github.com/rivo/uniseg v0.4.2 // indirect
+	github.com/rivo/uniseg v0.4.3 // indirect
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
