@@ -1,22 +1,22 @@
 package cli
 
 import (
-  "fmt"
+	"fmt"
 
-  "github.com/spf13/cobra"
+	"github.com/spf13/cobra"
 )
 
 var VERSION string
 
 func init() {
-  rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(versionCmd)
 }
 
 var versionCmd = &cobra.Command{
-  Use:   "version",
-  Short: "Display version",
-  Long:  `The version of gomphotherium.`,
-  Run: func(cmd *cobra.Command, args []string) {
-    fmt.Println("gomphotherium", VERSION)
-  },
+	Use:   "version",
+	Short: "Display version",
+	Long:  `The version of gomphotherium.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("gomphotherium", VERSION)
+	},
 }
