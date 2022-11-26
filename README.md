@@ -30,15 +30,21 @@ a sidebar-style program.
 
 Download a binary from the [releases][releases] page.
 
-Or build it yourself (requires Go 1.16+):
+Or build it yourself (requires Go 1.19+):
 
 ```bash
 make
 ```
 
+Or run via Dockerfile:
+
+```bash
+docker build . -t gomphotherium:latest
+
+docker run -it --rm -e <ENVIRONMENT VARIABLES> gomphotherium:latest
+```
+
 [releases]: https://github.com/mrusme/gomphotherium/releases
-
-
 ## User Manual
 
 
