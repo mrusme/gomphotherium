@@ -17,3 +17,7 @@
 .DS_Store
 /gomphotherium
 error.log
+
+# VSCode related files
+.devcontainer/*
+.vscode/*

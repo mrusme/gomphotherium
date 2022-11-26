@@ -23,6 +23,7 @@ const (
 type TUIOptions struct {
 	ShowImages     bool
 	AutoCompletion bool
+	JustifyText    bool
 }
 
 type TUICore struct {
@@ -250,6 +251,7 @@ func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {
 		&tuiCore.Timeline,
 		w,
 		tuiCore.Options.ShowImages,
+		tuiCore.Options.JustifyText,
 	)
 
 	if err != nil {

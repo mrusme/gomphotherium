@@ -28,7 +28,7 @@ var cmdCmd = &cobra.Command{
 		case mast.CodeOk:
 			if loadTimeline == true {
 				timeline.Load()
-				output, err := tui.RenderTimeline(&timeline, 72, flagShowImages)
+				output, err := tui.RenderTimeline(&timeline, 72, flagShowImages, flagJustifyText)
 				if err != nil {
 					panic(err)
 				}

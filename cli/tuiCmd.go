@@ -17,6 +17,7 @@ var tuiCmd = &cobra.Command{
 			Options: tui.TUIOptions{
 				ShowImages:     flagShowImages,
 				AutoCompletion: flagAutocompletion,
+				JustifyText:    flagJustifyText,
 			},
 			Help: help,
 		}
