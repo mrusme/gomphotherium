@@ -2,27 +2,45 @@ package tui
 
 import (
 	"fmt"
+	"image/color"
+
 	// "time"
 	// "context"
 
 	"html"
 
+	"github.com/eliukblau/pixterm/pkg/ansimage"
 	strip "github.com/grokify/html-strip-tags-go"
 	"github.com/mattn/go-runewidth"
 
-	"image/color"
-
-	"github.com/eliukblau/pixterm/pkg/ansimage"
-
-	// "github.com/mattn/go-mastodon"
+	"github.com/mattn/go-mastodon"
 	"github.com/mrusme/gomphotherium/mast"
 )
 
-func RenderToot(toot *mast.Toot, width int, showImages bool) (string, error) {
+func RenderToot(
+	toot *mast.Toot,
+	width int,
+	showImages bool,
+	justifyText bool) (string, error) {
+	status := &toot.Status
+	return RenderStatus(status, toot, width, showImages, justifyText, false)
+}
+
+func RenderStatus(
+	status *mastodon.Status,
+	toot *mast.Toot,
+	width int,
+	showImages bool,
+	justifyText bool,
+	isReblog bool,
+) (string, error) {
 	var output string = ""
 	var err error = nil
 
-	status := &toot.Status
+	var indent string = ""
+	if isReblog {
+		indent = "    "
+	}
 
 	createdAt := status.CreatedAt
 
@@ -31,9 +49,11 @@ func RenderToot(toot *mast.Toot, width int, showImages bool) (string, error) {
 		account = status.Account.Username
 	}
 
-	inReplyTo := ""
+	inReplyToOrBoost := ""
 	if status.InReplyToID != nil {
-		inReplyTo = " \xe2\x87\x9f"
+		inReplyToOrBoost = " \xe2\x87\x9f"
+	} else if status.Reblog != nil {
+		inReplyToOrBoost = " \xe2\x86\xab"
 	}
 
 	idPadding :=
@@ -42,9 +62,9 @@ func RenderToot(toot *mast.Toot, width int, showImages bool) (string, error) {
 			runewidth.StringWidth(status.Account.DisplayName) -
 			len(account) -
 			// https://github.com/mattn/go-runewidth/issues/36
-			runewidth.StringWidth(inReplyTo)
+			runewidth.StringWidth(inReplyToOrBoost)
 
-	if toot.IsNotification == true {
+	if !isReblog && toot.IsNotification == true {
 		notification := &toot.Notification
 
 		notificationText := ""
@@ -92,18 +112,47 @@ func RenderToot(toot *mast.Toot, width int, showImages bool) (string, error) {
 		)
 	}
 
-	output = fmt.Sprintf("%s[blue]%s[-] [grey]%s[-][purple]%s[-][grey]%*d[-]\n",
-		output,
-		status.Account.DisplayName,
-		account,
-		inReplyTo,
-		idPadding,
-		toot.ID,
-	)
-	output = fmt.Sprintf("%s%s\n",
-		output,
-		html.UnescapeString(strip.StripTags(status.Content)),
-	)
+	if isReblog {
+		output = fmt.Sprintf("%s%s[blue]%s[-] [grey]%s[-][purple]%s[-]\n",
+			output,
+			indent,
+			status.Account.DisplayName,
+			account,
+			inReplyToOrBoost)
+	} else {
+		output = fmt.Sprintf("%s%s[blue]%s[-] [grey]%s[-][purple]%s[-][grey]%*d[-]\n",
+			output,
+			indent,
+			status.Account.DisplayName,
+			account,
+			inReplyToOrBoost,
+			idPadding,
+			toot.ID)
+	}
+
+	if !isReblog && status.Reblog != nil {
+		reblogOutput, err := RenderStatus(
+			status.Reblog,
+			toot,
+			width,
+			showImages,
+			justifyText,
+			true)
+		if err == nil {
+			output = fmt.Sprintf("%s%s", output, reblogOutput)
+		}
+	} else {
+		var wrappedContent string = WrapWithIndent(
+			html.UnescapeString(strip.StripTags(status.Content)),
+			width-len(indent),
+			indent,
+			justifyText,
+		)
+
+		output = fmt.Sprintf("%s%s\n",
+			output,
+			wrappedContent)
+	}
 
 	if showImages == true {
 		for _, attachment := range status.MediaAttachments {
@@ -121,8 +170,9 @@ func RenderToot(toot *mast.Toot, width int, showImages bool) (string, error) {
 		}
 	}
 
-	output = fmt.Sprintf("%s[purple]\xe2\x86\xab %d[-] ",
+	output = fmt.Sprintf("%s%s[purple]\xe2\x86\xab %d[-] ",
 		output,
+		indent,
 		status.RepliesCount,
 	)
 	output = fmt.Sprintf("%s[green]\xe2\x86\xbb %d[-] ",

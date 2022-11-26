@@ -12,6 +12,7 @@ var help string
 var server string
 var accessToken string
 var flagShowImages bool
+var flagJustifyText bool
 
 // var clientID string
 // var clientSecret string
@@ -54,6 +55,13 @@ func init() {
 		"i",
 		true,
 		"Show images in timeline",
+	)
+	rootCmd.PersistentFlags().BoolVarP(
+		&flagJustifyText,
+		"justify-text",
+		"j",
+		true,
+		"Justify text in timeline",
 	)
 }
 
