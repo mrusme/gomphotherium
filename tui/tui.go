@@ -40,9 +40,9 @@ type TUICore struct {
 	Timeline             mast.Timeline
 	RenderedTimelineType mast.TimelineType
 
-	Options TUIOptions
-
-	Help string
+	Options  TUIOptions
+	Progress *ProgressManager
+	Help     string
 }
 
 func TUI(tuiCore TUICore) {
@@ -66,36 +66,43 @@ func TUI(tuiCore TUICore) {
 	tuiCore.RenderedTimelineType = mast.TimelineHome
 	tuiCore.Timeline.Switch(mast.TimelineHome, nil)
 
-	tuiCore.CmdLine = tview.NewInputField().
+	tuiCore.CmdLine = tview.NewInputField()
+	tuiCore.Progress = NewProgress(tuiCore.CmdLine, tuiCore.App)
+
+	tuiCore.CmdLine.
 		SetLabelColor(tcell.ColorDefault).
 		SetFieldBackgroundColor(tcell.ColorDefault).
 		SetDoneFunc(func(key tcell.Key) {
 			if key == tcell.KeyEnter {
 				cmd := tuiCore.CmdLine.GetText()
 				tuiCore.CmdLine.SetText("")
-				retCode, _ := mast.CmdProcessor(&tuiCore.Timeline, cmd, mast.TriggerTUI)
+				tuiCore.Progress.Run(func() (mast.CmdReturnCode, bool) {
+					retCode, ok := mast.CmdProcessor(&tuiCore.Timeline, cmd, mast.TriggerTUI)
 
-				switch retCode {
-				case mast.CodeOk:
-					if tuiCore.Timeline.GetCurrentType() == mast.TimelineUser &&
-						tuiCore.RenderedTimelineType != mast.TimelineUser {
-						tuiCore.Grid.
-							RemoveItem(tuiCore.Stream).
-							AddItem(tuiCore.Profile, 0, 0, 1, 1, 0, 0, false).
-							AddItem(tuiCore.Stream, 1, 0, 1, 1, 0, 0, false)
-					} else if tuiCore.RenderedTimelineType == mast.TimelineUser &&
-						tuiCore.Timeline.GetCurrentType() != mast.TimelineUser {
-						tuiCore.Grid.
-							RemoveItem(tuiCore.Profile).
-							RemoveItem(tuiCore.Stream).
-							AddItem(tuiCore.Stream, 0, 0, 2, 1, 0, 0, false)
+					switch retCode {
+					case mast.CodeOk:
+						if tuiCore.Timeline.GetCurrentType() == mast.TimelineUser &&
+							tuiCore.RenderedTimelineType != mast.TimelineUser {
+							tuiCore.Grid.
+								RemoveItem(tuiCore.Stream).
+								AddItem(tuiCore.Profile, 0, 0, 1, 1, 0, 0, false).
+								AddItem(tuiCore.Stream, 1, 0, 1, 1, 0, 0, false)
+						} else if tuiCore.RenderedTimelineType == mast.TimelineUser &&
+							tuiCore.Timeline.GetCurrentType() != mast.TimelineUser {
+							tuiCore.Grid.
+								RemoveItem(tuiCore.Profile).
+								RemoveItem(tuiCore.Stream).
+								AddItem(tuiCore.Stream, 0, 0, 2, 1, 0, 0, false)
+						}
+						tuiCore.UpdateTimeline(true)
+					case mast.CodeHelp:
+						tuiCore.ShowHelp()
+					case mast.CodeQuit:
+						tuiCore.App.Stop()
 					}
-					tuiCore.UpdateTimeline(true)
-				case mast.CodeHelp:
-					tuiCore.ShowHelp()
-				case mast.CodeQuit:
-					tuiCore.App.Stop()
-				}
+
+					return retCode, ok
+				})
 			}
 		})
 
@@ -201,6 +208,7 @@ func (tuiCore *TUICore) ShowHelp() {
 		SetWrap(true).
 		SetDoneFunc(func(key tcell.Key) {
 			tuiCore.App.SetRoot(tuiCore.Grid, true)
+			tuiCore.EnterCommandMode()
 			return
 		})
 
@@ -293,7 +301,7 @@ func (tuiCore *TUICore) EnterCommandMode() bool {
 		tuiCore.CmdLine.SetLabelColor(tcell.ColorTeal)
 
 		tuiCore.Prompt = tuiCore.Timeline.Account.Username + ": "
-		tuiCore.CmdLine.
+		tuiCore.Progress.
 			SetLabel(tuiCore.Prompt)
 
 		tuiCore.Mode = CommandMode
@@ -309,7 +317,7 @@ func (tuiCore *TUICore) ExitCommandMode(force bool) bool {
 		tuiCore.CmdLine.SetLabelColor(tcell.ColorDefault)
 
 		tuiCore.Prompt = tuiCore.Timeline.Account.Username + "  "
-		tuiCore.CmdLine.
+		tuiCore.Progress.
 			SetLabel(tuiCore.Prompt)
 
 		tuiCore.Mode = NormalMode
@@ -317,4 +325,95 @@ func (tuiCore *TUICore) ExitCommandMode(force bool) bool {
 	}
 
 	return false
+}
+
+var spinners = [...]string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+// var spinners = [...]string{"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█", "▇", "▆", "▅", "▄", "▃"}
+// var spinners = [...]string{"◴", "◷", "◶", "◵"}
+// var spinners = [...]string{"←", "↖", "↑", "↗", "→", "↘", "↓", "↙"}
+
+type ProgressManager struct {
+	inputField       *tview.InputField
+	app              *tview.Application
+	label            string
+	prefix           string
+	labelColor       *tcell.Color
+	labelColorString string
+}
+
+func NewProgress(field *tview.InputField, app *tview.Application) *ProgressManager {
+	i := &ProgressManager{
+		inputField: field,
+		app:        app,
+		prefix:     " ",
+		labelColor: nil,
+	}
+
+	return i
+}
+
+func (i *ProgressManager) updateColor() {
+	newColor, _, _ := i.inputField.GetLabelStyle().Decompose()
+	if i.labelColor == nil || newColor != *i.labelColor {
+		i.labelColor = &newColor
+		i.labelColorString = "default"
+		for key, value := range tcell.ColorNames {
+			if value == newColor {
+				i.labelColorString = key
+				break
+			}
+		}
+	}
+}
+
+func (i *ProgressManager) Run(action func() (mast.CmdReturnCode, bool)) {
+	cmdResult := make(chan string, 1)
+	i.updateColor()
+
+	go func() {
+		cmd, _ := action()
+		if cmd == mast.CodeOk{
+			cmdResult <- "[green]✓"
+		} else if cmd == mast.CodeNotOk {
+			cmdResult <- "[red]𐄂"
+		}	else {
+			cmdResult <- " "
+		}
+		close(cmdResult)
+	}()
+
+	go func() {
+		var spin int
+
+		for {
+			select {
+			case result, ok := <-cmdResult:
+				if ok {
+					i.prefix = result
+					i.app.QueueUpdateDraw(func() {
+						i.updateLabel()
+					})
+					return
+				}
+
+			case <-time.After(100 * time.Millisecond):
+				i.app.QueueUpdateDraw(func() {
+					i.prefix = "[yellow]" + spinners[spin%len(spinners)]
+					i.updateLabel()
+				})
+				spin++
+			}
+		}
+	}()
+}
+
+func (i *ProgressManager) SetLabel(label string) {
+	i.label = label
+	i.prefix = " "
+	i.updateColor()
+	i.updateLabel()
+}
+
+func (i *ProgressManager) updateLabel() {
+	i.inputField.SetLabel(fmt.Sprintf("%s[%s]%s", i.prefix, i.labelColorString, i.label))
 }
