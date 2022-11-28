@@ -2,6 +2,7 @@ package mast
 
 import (
 	"context"
+	"errors"
 
 	"github.com/mattn/go-mastodon"
 )
@@ -167,6 +168,9 @@ func (timeline *Timeline) Toot(
 	}
 
 	if inReplyTo > -1 {
+		if inReplyTo >= len(timeline.Toots) {
+			return nil, errors.New("Replied-to toot does not exist")
+		}
 		newToot.InReplyToID = timeline.Toots[inReplyTo].Status.ID
 	}
 

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell/v2"
+	"github.com/kr/text"
 	"github.com/rivo/tview"
 
 	"github.com/mattn/go-mastodon"
@@ -32,6 +34,7 @@ type TUICore struct {
 	CmdLine *tview.InputField
 	Profile *tview.TextView
 	Stream  *tview.TextView
+	History *History
 	Grid    *tview.Grid
 
 	Prompt string
@@ -77,7 +80,12 @@ func TUI(tuiCore TUICore) {
 				cmd := tuiCore.CmdLine.GetText()
 				tuiCore.CmdLine.SetText("")
 				tuiCore.Progress.Run(func() (mast.CmdReturnCode, bool) {
-					retCode, ok := mast.CmdProcessor(&tuiCore.Timeline, cmd, mast.TriggerTUI)
+
+					result := mast.CmdProcessor(&tuiCore.Timeline, cmd, mast.TriggerTUI)
+
+					retCode, err, reloadTimeline := result.Decompose()
+
+					tuiCore.updateHistory(cmd, retCode, err)
 
 					switch retCode {
 					case mast.CodeOk:
@@ -97,11 +105,13 @@ func TUI(tuiCore TUICore) {
 						tuiCore.UpdateTimeline(true)
 					case mast.CodeHelp:
 						tuiCore.ShowHelp()
+					case mast.CodeHistory:
+						tuiCore.ShowHistory()
 					case mast.CodeQuit:
 						tuiCore.App.Stop()
 					}
 
-					return retCode, ok
+					return retCode, reloadTimeline
 				})
 			}
 		})
@@ -122,6 +132,8 @@ func TUI(tuiCore TUICore) {
 		SetDynamicColors(true).
 		SetRegions(true).
 		SetWrap(true)
+
+	tuiCore.History = NewHistory(&tuiCore)
 
 	tuiCore.Grid = tview.NewGrid().
 		SetRows(8, 0, 1).
@@ -196,6 +208,49 @@ func TUI(tuiCore TUICore) {
 
 	if err := tuiCore.App.SetRoot(tuiCore.Grid, true).Run(); err != nil {
 		panic(err)
+	}
+}
+
+func (tuiCore *TUICore) ShowHistory() {
+	tuiCore.App.SetRoot(tuiCore.History.Root, true)
+}
+
+func (tuiCore *TUICore) updateHistory(cmd string, code mast.CmdReturnCode, err error) {
+	var color tcell.Color
+	var codeString string
+
+	switch code {
+	case mast.CodeOk:
+		codeString = "Ok"
+		color = tcell.ColorGreen
+	case mast.CodeNotOk:
+		codeString = "Not Ok"
+		color = tcell.ColorRed
+	case mast.CodeCommandNotFound:
+		codeString = "Command not found"
+		color = tcell.ColorRed
+		break
+	case mast.CodeUserNotFound:
+		codeString = "User not found"
+		color = tcell.ColorRed
+		break
+	default:
+		return
+	}
+
+	dateTime := time.Now()
+	dateTimeString := fmt.Sprint(dateTime.Format("01-02-2006 15:04:05"))
+
+	row := tuiCore.History.Table.GetRowCount()
+
+	tuiCore.History.Table.SetCell(row, 0, tview.NewTableCell(dateTimeString))
+	tuiCore.History.Table.SetCell(row, 1, tview.NewTableCell(cmd).SetMaxWidth(25))
+	tuiCore.History.Table.SetCell(row, 2, tview.NewTableCell(codeString).SetTextColor(color))
+
+	if err != nil {
+		_, _, width := tuiCore.History.Table.GetCell(0, 3).GetLastPosition()
+		wrapped := text.Wrap(err.Error(), width)
+		tuiCore.History.Table.SetCell(row, 3, tview.NewTableCell(wrapped))
 	}
 }
 
@@ -328,6 +383,7 @@ func (tuiCore *TUICore) ExitCommandMode(force bool) bool {
 }
 
 var spinners = [...]string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+
 // var spinners = [...]string{"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█", "▇", "▆", "▅", "▄", "▃"}
 // var spinners = [...]string{"◴", "◷", "◶", "◵"}
 // var spinners = [...]string{"←", "↖", "↑", "↗", "→", "↘", "↓", "↙"}
@@ -372,11 +428,11 @@ func (i *ProgressManager) Run(action func() (mast.CmdReturnCode, bool)) {
 
 	go func() {
 		cmd, _ := action()
-		if cmd == mast.CodeOk{
+		if cmd == mast.CodeOk {
 			cmdResult <- "[green]✓"
 		} else if cmd == mast.CodeNotOk {
 			cmdResult <- "[red]𐄂"
-		}	else {
+		} else {
 			cmdResult <- " "
 		}
 		close(cmdResult)
@@ -416,4 +472,71 @@ func (i *ProgressManager) SetLabel(label string) {
 
 func (i *ProgressManager) updateLabel() {
 	i.inputField.SetLabel(fmt.Sprintf("%s[%s]%s", i.prefix, i.labelColorString, i.label))
+}
+
+type History struct {
+	Root  *tview.Pages
+	Table *tview.Table
+	modal *tview.Modal
+}
+
+func NewHistory(app *TUICore) *History {
+	history := &History{}
+	history.Table = tview.NewTable().
+		SetSelectable(true, true).
+		SetSelectedStyle(tcell.Style{}.Reverse(true)).
+		SetCell(0, 0,
+			tview.NewTableCell("Time").
+				SetAttributes(tcell.AttrBold).
+				SetSelectable(false)).
+		SetCell(0, 1,
+			tview.NewTableCell("Command").
+				SetAttributes(tcell.AttrBold).
+				SetSelectable(false)).
+		SetCell(0, 2,
+			tview.NewTableCell("Status").
+				SetAttributes(tcell.AttrBold).
+				SetAlign(tview.AlignCenter).
+				SetSelectable(false)).
+		SetCell(0, 3,
+			tview.NewTableCell("Descripton").
+				SetAttributes(tcell.AttrBold).
+				SetSelectable(false).
+				SetExpansion(1)).
+		SetBorders(true).
+		SetSelectedFunc(func(x, y int) {
+			if y != 0 {
+				_, _, width, _ := app.Stream.Box.GetInnerRect()
+				history.modal.SetRect(0, 0, width, 15)
+				cell := history.Table.GetCell(x, y)
+				history.modal.SetText(cell.Text)
+				history.modal.SetFocus(0)
+				history.Root.SendToFront("modal")
+				history.Root.ShowPage("modal")
+			}
+		}).
+		SetDoneFunc(func(key tcell.Key) {
+			if key == tcell.KeyEscape {
+				app.App.SetRoot(app.Grid, true)
+				app.EnterCommandMode()
+			}
+		})
+
+	history.modal = tview.NewModal().
+		SetButtonTextColor(tcell.ColorWhite). // this shouldnt be required but tview seems to have a bug where button background doesnt visibly update if PrimaryTextColor is ColorDefault
+		AddButtons([]string{"Close", "Copy to Clipboard"}).
+		SetDoneFunc(func(buttonIndex int, buttonLabel string) {
+			if buttonLabel == "Copy to Clipboard" {
+				clipboard.WriteAll(history.Table.GetCell(history.Table.GetSelection()).Text)
+			} else {
+				history.Root.HidePage("modal")
+				history.Root.SendToBack("modal")
+			}
+		})
+
+	history.Root = tview.NewPages().
+		AddPage("background", history.Table, true, true).
+		AddPage("modal", history.modal, true, false)
+
+	return history
 }

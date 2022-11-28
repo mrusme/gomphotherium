@@ -18,12 +18,13 @@ var cmdCmd = &cobra.Command{
 	Long:  "Run command directly from the command line.",
 	Run: func(cmd *cobra.Command, args []string) {
 		timeline := mast.NewTimeline(MastodonClient)
-		cmdReturn, loadTimeline := mast.CmdProcessor(
+		result := mast.CmdProcessor(
 			&timeline,
 			strings.Join(args, " "),
 			mast.TriggerCLI,
 		)
 
+		cmdReturn, _, loadTimeline := result.Decompose()
 		switch cmdReturn {
 		case mast.CodeOk:
 			if loadTimeline == true {
