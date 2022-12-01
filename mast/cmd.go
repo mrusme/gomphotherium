@@ -2,6 +2,7 @@ package mast
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"regexp"
@@ -22,9 +23,27 @@ const (
 	CodeUserNotFound                      = 3
 	CodeTriggerNotSupported               = 4
 
-	CodeQuit = -1
-	CodeHelp = -2
+	CodeQuit    = -1
+	CodeHelp    = -2
+	CodeHistory = -3
 )
+
+type CmdExecutionResult struct {
+	retCode        CmdReturnCode
+	err            error
+	reloadTimeline bool
+}
+
+func (i *CmdExecutionResult) SetCodeAndError(retCode CmdReturnCode, err error) *CmdExecutionResult {
+	i.retCode = retCode
+	i.err = err
+
+	return i
+}
+
+func (i *CmdExecutionResult) Decompose() (CmdReturnCode, error, bool) {
+	return i.retCode, i.err, i.reloadTimeline
+}
 
 type CmdTrigger int
 
@@ -86,6 +105,8 @@ func CmdAvailable() []string {
 
 		// "search",
 
+		"history",
+
 		"help",
 		"?",
 
@@ -124,7 +145,7 @@ func CmdAutocompleter(input string, knownUsers map[string]string) []string {
 	return entries
 }
 
-func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) (CmdReturnCode, bool) {
+func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) CmdExecutionResult {
 	split := strings.SplitN(input, " ", 2)
 	cmd := split[0]
 
@@ -136,20 +157,20 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) (CmdRetu
 	switch cmd {
 	case "home":
 		timeline.Switch(TimelineHome, nil)
-		return CodeOk, true
+		return CmdExecutionResult{CodeOk, nil, true}
 	case "local":
 		timeline.Switch(TimelineLocal, nil)
-		return CodeOk, true
+		return CmdExecutionResult{CodeOk, nil, true}
 	case "public":
 		timeline.Switch(TimelinePublic, nil)
-		return CodeOk, true
+		return CmdExecutionResult{CodeOk, nil, true}
 	case "notifications":
 		timeline.Switch(TimelineNotifications, nil)
-		return CodeOk, true
+		return CmdExecutionResult{CodeOk, nil, true}
 	case "hashtag":
 		hashtag, isLocal, err := CmdHelperGetHashtagParams(args)
 		if err != nil {
-			return CodeNotOk, false
+			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
 		timelineOptions := TimelineOptions{
@@ -158,10 +179,11 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) (CmdRetu
 		}
 
 		timeline.Switch(TimelineHashtag, &timelineOptions)
-		return CodeOk, true
+		return CmdExecutionResult{CodeOk, nil, true}
 	case "whois":
 		if trigger != TriggerTUI {
-			return CodeTriggerNotSupported, false
+
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
 		}
 
 		var account *mastodon.Account
@@ -176,7 +198,7 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) (CmdRetu
 			accounts, err := timeline.SearchUser(args, 1)
 			if err != nil || len(accounts) < 1 {
 				// TODO: pass info back to caller
-				return CodeUserNotFound, false
+				return CmdExecutionResult{CodeUserNotFound, errors.New(fmt.Sprintf("user %s not found", args)), false}
 			}
 
 			account = accounts[0]
@@ -187,140 +209,148 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) (CmdRetu
 		}
 
 		timeline.Switch(TimelineUser, &timelineOptions)
-		return CodeOk, true
+		return CmdExecutionResult{CodeOk, nil, true}
 	case "t", "toot":
-		return CmdToot(timeline, args, -1, VisibilityPublic), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, -1, VisibilityPublic))
 	case "tp", "tootprivate":
-		return CmdToot(timeline, args, -1, VisibilityPrivate), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, -1, VisibilityPrivate))
 	case "tu", "tootunlisted":
-		return CmdToot(timeline, args, -1, VisibilityUnlisted), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, -1, VisibilityUnlisted))
 	case "td", "tootdirect":
-		return CmdToot(timeline, args, -1, VisibilityUnlisted), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, -1, VisibilityUnlisted))
 	case "re", "reply":
 		if trigger != TriggerTUI {
-			return CodeTriggerNotSupported, false
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
 		}
 
 		tootId, args, err := CmdHelperGetReplyParams(args)
 		if err != nil {
-			return CodeNotOk, false
+			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return CmdToot(timeline, args, tootId, VisibilityPublic), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, tootId, VisibilityPublic))
 	case "rep", "replyprivate":
 		if trigger != TriggerTUI {
-			return CodeTriggerNotSupported, false
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
 		}
 
 		tootId, args, err := CmdHelperGetReplyParams(args)
 		if err != nil {
-			return CodeNotOk, false
+			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return CmdToot(timeline, args, tootId, VisibilityPrivate), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, tootId, VisibilityPrivate))
 	case "reu", "replyunlisted":
 		if trigger != TriggerTUI {
-			return CodeTriggerNotSupported, false
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
 		}
 
 		tootId, args, err := CmdHelperGetReplyParams(args)
 		if err != nil {
-			return CodeNotOk, false
+			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return CmdToot(timeline, args, tootId, VisibilityUnlisted), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, tootId, VisibilityUnlisted))
 	case "red", "replydirect":
 		if trigger != TriggerTUI {
-			return CodeTriggerNotSupported, false
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
 		}
 
 		tootId, args, err := CmdHelperGetReplyParams(args)
 		if err != nil {
-			return CodeNotOk, false
+			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return CmdToot(timeline, args, tootId, VisibilityDirect), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, tootId, VisibilityDirect))
 	case "rt", "retoot", "boost":
 		if trigger != TriggerTUI {
-			return CodeTriggerNotSupported, false
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
 		}
 
 		tootId, err := CmdHelperGetBoostParams(args)
 		if err != nil {
-			return CodeNotOk, false
+			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return CmdBoost(timeline, tootId), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdBoost(timeline, tootId))
 	case "ut", "unretoot", "unboost":
 		if trigger != TriggerTUI {
-			return CodeTriggerNotSupported, false
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
 		}
 
 		tootId, err := CmdHelperGetBoostParams(args)
 		if err != nil {
-			return CodeNotOk, false
+			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return CmdUnboost(timeline, tootId), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdUnboost(timeline, tootId))
 	case "fav":
 		if trigger != TriggerTUI {
-			return CodeTriggerNotSupported, false
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
 		}
 
 		tootId, err := CmdHelperGetFavParams(args)
 		if err != nil {
-			return CodeNotOk, false
+			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return CmdFav(timeline, tootId), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdFav(timeline, tootId))
 	case "unfav":
 		if trigger != TriggerTUI {
-			return CodeTriggerNotSupported, false
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
 		}
 
 		tootId, err := CmdHelperGetFavParams(args)
 		if err != nil {
-			return CodeNotOk, false
+			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return CmdUnfav(timeline, tootId), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdUnfav(timeline, tootId))
 	case "open":
 		if trigger != TriggerTUI {
-			return CodeTriggerNotSupported, false
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
 		}
 
 		tootId, err := CmdHelperGetOpenParams(args)
 		if err != nil {
-			return CodeNotOk, false
+			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return CmdOpen(timeline, tootId), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdOpen(timeline, tootId))
 	case "share":
 		if trigger != TriggerTUI {
-			return CodeTriggerNotSupported, false
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
 		}
 
 		tootId, err := CmdHelperGetShareParams(args)
 		if err != nil {
-			return CodeNotOk, false
+			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return CmdShare(timeline, tootId), false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdShare(timeline, tootId))
 	case "?", "help":
 		if trigger != TriggerTUI {
-			return CodeTriggerNotSupported, false
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
 		}
 
-		return CodeHelp, false
+		return CmdExecutionResult{CodeHelp, nil, false}
+
+	case "history":
+		if trigger != TriggerTUI {
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
+		}
+
+		return CmdExecutionResult{CodeHistory, nil, false}
+
 	case "quit", "exit", "bye", "q":
 		if trigger != TriggerTUI {
-			return CodeTriggerNotSupported, false
+			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
 		}
 
-		return CodeQuit, false
+		return CmdExecutionResult{CodeQuit, nil, false}
 	}
 
-	return CodeCommandNotFound, false
+	return CmdExecutionResult{CodeCommandNotFound, nil, false}
 }
 
 func CmdHelperGetHashtagParams(args string) (string, bool, error) {
@@ -386,7 +416,7 @@ func CmdToot(
 	timeline *Timeline,
 	content string,
 	inReplyTo int,
-	visibility string) CmdReturnCode {
+	visibility string) (CmdReturnCode, error) {
 	var status string = ""
 	var spoiler string = ""
 	var sensitive bool = false
@@ -420,49 +450,49 @@ func CmdToot(
 		&spoiler,
 	)
 	if err != nil {
-		return CodeNotOk
+		return CodeNotOk, err
 	}
 
-	return CodeOk
+	return CodeOk, nil
 }
 
-func CmdBoost(timeline *Timeline, tootID int) CmdReturnCode {
+func CmdBoost(timeline *Timeline, tootID int) (CmdReturnCode, error) {
 	_, err := timeline.Boost(tootID, true)
 	if err != nil {
-		return CodeNotOk
+		return CodeNotOk, err
 	}
 
-	return CodeOk
+	return CodeOk, nil
 }
 
-func CmdUnboost(timeline *Timeline, tootID int) CmdReturnCode {
+func CmdUnboost(timeline *Timeline, tootID int) (CmdReturnCode, error) {
 	_, err := timeline.Boost(tootID, false)
 	if err != nil {
-		return CodeNotOk
+		return CodeNotOk, err
 	}
 
-	return CodeOk
+	return CodeOk, nil
 }
 
-func CmdFav(timeline *Timeline, tootID int) CmdReturnCode {
+func CmdFav(timeline *Timeline, tootID int) (CmdReturnCode, error) {
 	_, err := timeline.Fav(tootID, true)
 	if err != nil {
-		return CodeNotOk
+		return CodeNotOk, err
 	}
 
-	return CodeOk
+	return CodeOk, nil
 }
 
-func CmdUnfav(timeline *Timeline, tootID int) CmdReturnCode {
+func CmdUnfav(timeline *Timeline, tootID int) (CmdReturnCode, error) {
 	_, err := timeline.Fav(tootID, false)
 	if err != nil {
-		return CodeNotOk
+		return CodeNotOk, err
 	}
 
-	return CodeOk
+	return CodeOk, nil
 }
 
-func CmdOpen(timeline *Timeline, tootID int) CmdReturnCode {
+func CmdOpen(timeline *Timeline, tootID int) (CmdReturnCode, error) {
 	var cmd *exec.Cmd
 
 	url := timeline.Toots[tootID].Status.URL
@@ -476,25 +506,25 @@ func CmdOpen(timeline *Timeline, tootID int) CmdReturnCode {
 		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", url)
 	default:
 		// errors.New("Platform not supported!")
-		return CodeNotOk
+		return CodeNotOk, errors.New("Platform not supported!")
 	}
 
 	cmd.Env = append(os.Environ())
 	err := cmd.Start()
 	if err != nil {
-		return CodeNotOk
+		return CodeNotOk, err
 	}
 
-	return CodeOk
+	return CodeOk, nil
 }
 
-func CmdShare(timeline *Timeline, tootID int) CmdReturnCode {
+func CmdShare(timeline *Timeline, tootID int) (CmdReturnCode, error) {
 	url := timeline.Toots[tootID].Status.URL
 
 	err := clipboard.WriteAll(url)
 	if err != nil {
-		return CodeNotOk
+		return CodeNotOk, err
 	}
 
-	return CodeOk
+	return CodeOk, nil
 }

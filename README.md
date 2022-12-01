@@ -249,6 +249,9 @@ Retoot/boost toot with ID *11*
 `help` \
 Show this help
 
+`history` \
+Show command history
+
 `bye` \
 Goodbye!
 
