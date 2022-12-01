@@ -6,7 +6,6 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/gdamore/tcell/v2"
-	"github.com/kr/text"
 	"github.com/rivo/tview"
 
 	"github.com/mattn/go-mastodon"
@@ -85,7 +84,7 @@ func TUI(tuiCore TUICore) {
 
 					retCode, err, reloadTimeline := result.Decompose()
 
-					tuiCore.updateHistory(cmd, retCode, err)
+					tuiCore.History.AddHistory(cmd, retCode, err)
 
 					switch retCode {
 					case mast.CodeOk:
@@ -213,45 +212,6 @@ func TUI(tuiCore TUICore) {
 
 func (tuiCore *TUICore) ShowHistory() {
 	tuiCore.App.SetRoot(tuiCore.History.Root, true)
-}
-
-func (tuiCore *TUICore) updateHistory(cmd string, code mast.CmdReturnCode, err error) {
-	var color tcell.Color
-	var codeString string
-
-	switch code {
-	case mast.CodeOk:
-		codeString = "Ok"
-		color = tcell.ColorGreen
-	case mast.CodeNotOk:
-		codeString = "Not Ok"
-		color = tcell.ColorRed
-	case mast.CodeCommandNotFound:
-		codeString = "Command not found"
-		color = tcell.ColorRed
-		break
-	case mast.CodeUserNotFound:
-		codeString = "User not found"
-		color = tcell.ColorRed
-		break
-	default:
-		return
-	}
-
-	dateTime := time.Now()
-	dateTimeString := fmt.Sprint(dateTime.Format("01-02-2006 15:04:05"))
-
-	row := tuiCore.History.Table.GetRowCount()
-
-	tuiCore.History.Table.SetCell(row, 0, tview.NewTableCell(dateTimeString))
-	tuiCore.History.Table.SetCell(row, 1, tview.NewTableCell(cmd).SetMaxWidth(25))
-	tuiCore.History.Table.SetCell(row, 2, tview.NewTableCell(codeString).SetTextColor(color))
-
-	if err != nil {
-		_, _, width := tuiCore.History.Table.GetCell(0, 3).GetLastPosition()
-		wrapped := text.Wrap(err.Error(), width)
-		tuiCore.History.Table.SetCell(row, 3, tview.NewTableCell(wrapped))
-	}
 }
 
 func (tuiCore *TUICore) ShowHelp() {
@@ -482,6 +442,7 @@ type History struct {
 
 func NewHistory(app *TUICore) *History {
 	history := &History{}
+
 	history.Table = tview.NewTable().
 		SetSelectable(true, true).
 		SetSelectedStyle(tcell.Style{}.Reverse(true)).
@@ -499,21 +460,17 @@ func NewHistory(app *TUICore) *History {
 				SetAlign(tview.AlignCenter).
 				SetSelectable(false)).
 		SetCell(0, 3,
-			tview.NewTableCell("Descripton").
+			tview.NewTableCell("Error").
 				SetAttributes(tcell.AttrBold).
 				SetSelectable(false).
 				SetExpansion(1)).
 		SetBorders(true).
-		SetSelectedFunc(func(x, y int) {
-			if y != 0 {
-				_, _, width, _ := app.Stream.Box.GetInnerRect()
-				history.modal.SetRect(0, 0, width, 15)
-				cell := history.Table.GetCell(x, y)
-				history.modal.SetText(cell.Text)
-				history.modal.SetFocus(0)
-				history.Root.SendToFront("modal")
-				history.Root.ShowPage("modal")
-			}
+		SetSelectedFunc(func(y, x int) {
+			cell := history.Table.GetCell(y, x)
+			history.modal.SetText(cell.Text)
+			history.modal.SetFocus(0)
+			history.Root.SendToFront("modal")
+			history.Root.ShowPage("modal")
 		}).
 		SetDoneFunc(func(key tcell.Key) {
 			if key == tcell.KeyEscape {
@@ -534,9 +491,69 @@ func NewHistory(app *TUICore) *History {
 			}
 		})
 
+	help := tview.NewTextView().
+		SetDynamicColors(true).
+		SetText(" ESC to return, Enter to view cell")
+
+	grid := tview.NewGrid().
+		SetRows(0, 1).
+		AddItem(history.Table, 0, 0, 1, 2, 0, 0, true).
+		AddItem(help, 1, 0, 1, 1, 0, 0, false)
+
 	history.Root = tview.NewPages().
-		AddPage("background", history.Table, true, true).
+		AddPage("background", grid, true, true).
 		AddPage("modal", history.modal, true, false)
 
 	return history
+}
+
+func (history *History) AddHistory(cmd string, code mast.CmdReturnCode, err error) {
+	var color tcell.Color
+	var codeString string
+
+	switch code {
+	case mast.CodeOk:
+		codeString = "Success"
+		color = tcell.ColorGreen
+	case mast.CodeNotOk:
+		codeString = "Failure"
+		color = tcell.ColorRed
+	case mast.CodeCommandNotFound:
+		codeString = "Unknown Command"
+		color = tcell.ColorRed
+		break
+	case mast.CodeUserNotFound:
+		codeString = "User not found"
+		color = tcell.ColorRed
+		break
+	default:
+		return
+	}
+
+	dateTime := time.Now()
+	dateTimeString := fmt.Sprint(dateTime.Format("01-02-2006 15:04:05"))
+
+	history.Table.InsertRow(1)
+	history.Table.SetCell(1, 0,
+		tview.NewTableCell(dateTimeString))
+	history.Table.SetCell(1, 1,
+		tview.NewTableCell(cmd).
+		SetMaxWidth(25))
+	history.Table.SetCell(1, 2,
+		tview.NewTableCell(codeString).
+		SetAlign(tview.AlignCenter).
+		SetTextColor(color))
+
+	if err != nil {
+		history.Table.SetCell(1, 3, tview.NewTableCell(err.Error()))
+	} else {
+		history.Table.SetCell(1, 3, tview.NewTableCell(""))
+	}
+
+	dataRows := history.Table.GetRowCount() - 1
+	max := 100
+
+	if dataRows > max {
+		history.Table.RemoveRow(dataRows)
+	}
 }
