@@ -211,13 +211,13 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) CmdExecu
 		timeline.Switch(TimelineUser, &timelineOptions)
 		return CmdExecutionResult{CodeOk, nil, true}
 	case "t", "toot":
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, -1, VisibilityPublic)) //false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, -1, VisibilityPublic))
 	case "tp", "tootprivate":
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, -1, VisibilityPrivate)) //, false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, -1, VisibilityPrivate))
 	case "tu", "tootunlisted":
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, -1, VisibilityUnlisted)) //, false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, -1, VisibilityUnlisted))
 	case "td", "tootdirect":
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, -1, VisibilityUnlisted)) //, false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, -1, VisibilityUnlisted))
 	case "re", "reply":
 		if trigger != TriggerTUI {
 			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
@@ -228,7 +228,7 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) CmdExecu
 			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, tootId, VisibilityPublic)) //, false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, tootId, VisibilityPublic))
 	case "rep", "replyprivate":
 		if trigger != TriggerTUI {
 			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
@@ -239,7 +239,7 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) CmdExecu
 			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, tootId, VisibilityPrivate)) // false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, tootId, VisibilityPrivate))
 	case "reu", "replyunlisted":
 		if trigger != TriggerTUI {
 			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
@@ -250,7 +250,7 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) CmdExecu
 			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, tootId, VisibilityUnlisted)) // false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, tootId, VisibilityUnlisted))
 	case "red", "replydirect":
 		if trigger != TriggerTUI {
 			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
@@ -261,7 +261,7 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) CmdExecu
 			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, tootId, VisibilityDirect)) // false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdToot(timeline, args, tootId, VisibilityDirect))
 	case "rt", "retoot", "boost":
 		if trigger != TriggerTUI {
 			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
@@ -272,7 +272,7 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) CmdExecu
 			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdBoost(timeline, tootId)) //, false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdBoost(timeline, tootId))
 	case "ut", "unretoot", "unboost":
 		if trigger != TriggerTUI {
 			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
@@ -283,7 +283,7 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) CmdExecu
 			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdUnboost(timeline, tootId)) // false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdUnboost(timeline, tootId))
 	case "fav":
 		if trigger != TriggerTUI {
 			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
@@ -294,7 +294,7 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) CmdExecu
 			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdFav(timeline, tootId)) // false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdFav(timeline, tootId))
 	case "unfav":
 		if trigger != TriggerTUI {
 			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
@@ -305,7 +305,7 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) CmdExecu
 			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdUnfav(timeline, tootId)) //, false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdUnfav(timeline, tootId))
 	case "open":
 		if trigger != TriggerTUI {
 			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
@@ -316,7 +316,7 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) CmdExecu
 			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdOpen(timeline, tootId)) //, false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdOpen(timeline, tootId))
 	case "share":
 		if trigger != TriggerTUI {
 			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
@@ -327,7 +327,7 @@ func CmdProcessor(timeline *Timeline, input string, trigger CmdTrigger) CmdExecu
 			return CmdExecutionResult{CodeNotOk, err, false}
 		}
 
-		return *(&CmdExecutionResult{}).SetCodeAndError(CmdShare(timeline, tootId)) //, false
+		return *(&CmdExecutionResult{}).SetCodeAndError(CmdShare(timeline, tootId))
 	case "?", "help":
 		if trigger != TriggerTUI {
 			return CmdExecutionResult{CodeTriggerNotSupported, nil, false}
