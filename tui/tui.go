@@ -11,7 +11,7 @@ import (
 	"github.com/mattn/go-mastodon"
 	"github.com/mrusme/gomphotherium/mast"
 
-	"github.com/tj/go-termd"
+	"github.com/pookzilla/go-termd"
 )
 
 type ModeType int

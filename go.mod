@@ -10,9 +10,9 @@ require (
 	github.com/grokify/html-strip-tags-go v0.0.1
 	github.com/mattn/go-mastodon v0.0.6
 	github.com/mattn/go-runewidth v0.0.14
+	github.com/pookzilla/go-termd v1.0.0-2044c8a
 	github.com/rivo/tview v0.0.0-20221117065207-09f052e6ca98
 	github.com/spf13/cobra v1.6.1
-	github.com/tj/go-termd v0.0.1
 )
 
 require (
@@ -40,6 +40,7 @@ require (
 	github.com/prometheus/tsdb v0.7.1 // indirect
 	github.com/rivo/uniseg v0.4.3 // indirect
 	github.com/russross/blackfriday v2.0.0+incompatible // indirect
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/soheilhy/cmux v0.1.4 // indirect
