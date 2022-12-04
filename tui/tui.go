@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/atotto/clipboard"
@@ -152,6 +153,10 @@ func TUI(tuiCore TUICore) {
 			case ':':
 				if tuiCore.EnterCommandMode() == true {
 					return nil
+				} else {
+					if len(tuiCore.CmdLine.GetText()) == 0 {
+						return nil
+					}
 				}
 			case 'u', 'd', 'b', 'f':
 				if tuiCore.Mode == NormalMode {
@@ -192,15 +197,24 @@ func TUI(tuiCore TUICore) {
 	})
 
 	go func() {
+		first := true
+
 		for {
 			time.Sleep(time.Second * 2)
-			tuiCore.UpdateTimeline(true)
+			tuiCore.Progress.Run(func() (mast.CmdReturnCode, bool) {
+				result := tuiCore.UpdateTimeline(first)
+				first = false
+				if tuiCore.Mode == 0 {
+					tuiCore.ExitCommandMode(true)
+				}
 
-			if tuiCore.Mode == 0 {
-				tuiCore.ExitCommandMode(true)
-			}
-
-			tuiCore.App.Draw()
+				tuiCore.App.Draw()
+				if result {
+					return mast.CodeOk, false
+				} else {
+					return mast.CodeNotOk, false
+				}
+			})
 			time.Sleep(time.Second * 58)
 		}
 	}()
@@ -355,6 +369,7 @@ type ProgressManager struct {
 	prefix           string
 	labelColor       *tcell.Color
 	labelColorString string
+	ProgressMutex    sync.Mutex
 }
 
 func NewProgress(field *tview.InputField, app *tview.Application) *ProgressManager {
@@ -383,6 +398,7 @@ func (i *ProgressManager) updateColor() {
 }
 
 func (i *ProgressManager) Run(action func() (mast.CmdReturnCode, bool)) {
+	i.ProgressMutex.Lock()
 	cmdResult := make(chan string, 1)
 	i.updateColor()
 
@@ -396,6 +412,7 @@ func (i *ProgressManager) Run(action func() (mast.CmdReturnCode, bool)) {
 			cmdResult <- " "
 		}
 		close(cmdResult)
+		i.ProgressMutex.Unlock()
 	}()
 
 	go func() {
@@ -538,11 +555,11 @@ func (history *History) AddHistory(cmd string, code mast.CmdReturnCode, err erro
 		tview.NewTableCell(dateTimeString))
 	history.Table.SetCell(1, 1,
 		tview.NewTableCell(cmd).
-		SetMaxWidth(25))
+			SetMaxWidth(25))
 	history.Table.SetCell(1, 2,
 		tview.NewTableCell(codeString).
-		SetAlign(tview.AlignCenter).
-		SetTextColor(color))
+			SetAlign(tview.AlignCenter).
+			SetTextColor(color))
 
 	if err != nil {
 		history.Table.SetCell(1, 3, tview.NewTableCell(err.Error()))
