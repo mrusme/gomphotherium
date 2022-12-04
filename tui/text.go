@@ -29,6 +29,7 @@ func CreateLine(
 	}
 
 	// allocate each justified space to one of the spaces in the list at random
+	rand.Seed(112358132134) // consistent seed so that results are the same between reloads
 	for i := leftoverSpaces; i > 0; i-- {
 		selection := rand.Intn(numberOfSpaces)
 		*spaceList[selection] += " "
