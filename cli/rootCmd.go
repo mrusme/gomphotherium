@@ -11,7 +11,9 @@ import (
 var help string
 var server string
 var accessToken string
+var tempDir string
 var flagShowImages bool
+var flagShowUserImages bool
 var flagJustifyText bool
 
 // var clientID string
@@ -57,12 +59,29 @@ func init() {
 		"Show images in timeline",
 	)
 	rootCmd.PersistentFlags().BoolVarP(
+		&flagShowUserImages,
+		"show-user-images",
+		"u",
+		true,
+		"Show user images",
+	)
+	rootCmd.PersistentFlags().StringVar(
+		&tempDir,
+		"temp-dir",
+		"",
+		"Temporary director for image cache.  Default is the system default temporary directory",
+	)
+	rootCmd.PersistentFlags().BoolVarP(
 		&flagJustifyText,
 		"justify-text",
 		"j",
 		true,
 		"Justify text in timeline",
 	)
+
+	if tempDir == "" {
+		tempDir = os.TempDir()
+	}
 }
 
 func initConfig() {

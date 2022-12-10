@@ -2,6 +2,7 @@ package tui
 
 import (
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -24,6 +25,8 @@ const (
 
 type TUIOptions struct {
 	ShowImages     bool
+	ShowUserImages bool
+	TempDir        string
 	AutoCompletion bool
 	JustifyText    bool
 }
@@ -42,10 +45,13 @@ type TUICore struct {
 
 	Timeline             mast.Timeline
 	RenderedTimelineType mast.TimelineType
+	ImageCache           *Images
 
 	Options  TUIOptions
 	Progress *ProgressManager
 	Help     string
+
+	LastWidth int
 }
 
 func TUI(tuiCore TUICore) {
@@ -61,6 +67,15 @@ func TUI(tuiCore TUICore) {
 		TertiaryTextColor:           tcell.ColorGreen,
 		InverseTextColor:            tcell.ColorBlack,
 		ContrastSecondaryTextColor:  tcell.ColorDarkCyan,
+	}
+
+	if tuiCore.Options.ShowImages || tuiCore.Options.ShowUserImages {
+		var err error
+		tuiCore.ImageCache, err = NewImages(tuiCore.Options.TempDir)
+		if err != nil {
+			fmt.Print("Cannot create image cache. Select a different directory or run with --show-images=false and --show-user-images=false")
+			os.Exit(1)
+		}
 	}
 
 	tuiCore.App = tview.NewApplication()
@@ -219,6 +234,25 @@ func TUI(tuiCore TUICore) {
 		}
 	}()
 
+	go func() {
+		for {
+			time.Sleep(time.Second * 1)
+			_, _, w, _ := tuiCore.Stream.Box.GetInnerRect()
+			if w != tuiCore.LastWidth {
+				tuiCore.Progress.Run(func() (mast.CmdReturnCode, bool) {
+					result := tuiCore.UpdateTimeline(true)
+					tuiCore.App.Draw()
+
+					if result {
+						return mast.CodeOk, false
+					} else {
+						return mast.CodeNotOk, false
+					}
+				})
+			}
+		}
+	}()
+
 	if err := tuiCore.App.SetRoot(tuiCore.Grid, true).Run(); err != nil {
 		panic(err)
 	}
@@ -278,7 +312,9 @@ func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {
 	currentTimelineType := tuiCore.Timeline.GetCurrentType()
 	if tuiCore.RenderedTimelineType != currentTimelineType ||
 		currentTimelineType == mast.TimelineHashtag ||
-		currentTimelineType == mast.TimelineUser {
+		currentTimelineType == mast.TimelineUser ||
+		w != tuiCore.LastWidth {
+		tuiCore.LastWidth = w
 		tuiCore.Stream.Clear()
 		tuiCore.RenderedTimelineType = currentTimelineType
 		tuiCore.Timeline.LastRenderedIndex = -1
@@ -286,8 +322,10 @@ func (tuiCore *TUICore) UpdateTimeline(scrollToEnd bool) bool {
 
 	output, err := RenderTimeline(
 		&tuiCore.Timeline,
+		tuiCore.ImageCache,
 		w,
 		tuiCore.Options.ShowImages,
+		tuiCore.Options.ShowUserImages,
 		tuiCore.Options.JustifyText,
 	)
 

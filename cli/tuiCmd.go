@@ -16,6 +16,8 @@ var tuiCmd = &cobra.Command{
 			Client: MastodonClient,
 			Options: tui.TUIOptions{
 				ShowImages:     flagShowImages,
+				ShowUserImages: flagShowUserImages,
+				TempDir:        tempDir,
 				AutoCompletion: flagAutocompletion,
 				JustifyText:    flagJustifyText,
 			},
