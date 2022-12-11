@@ -1,17 +1,26 @@
 package tui
 
 import (
+
+	// "strings"
+	// "fmt"
+	// "github.com/patrickmn/go-cache"
+	// "time"
+	// "context"
+
 	"fmt"
-	"image/color"
+	"strings"
 
 	// "time"
 	// "context"
 
 	"html"
 
-	"github.com/eliukblau/pixterm/pkg/ansimage"
+	//   "github.com/mattn/go-mastodon"
+	//   "github.com/mrusme/gomphotherium/mast"
+	// )
+
 	strip "github.com/grokify/html-strip-tags-go"
-	"github.com/mattn/go-runewidth"
 
 	"github.com/mattn/go-mastodon"
 	"github.com/mrusme/gomphotherium/mast"
@@ -19,28 +28,56 @@ import (
 
 func RenderToot(
 	toot *mast.Toot,
+	imageCache *Images,
 	width int,
 	showImages bool,
+	showUserImages bool,
 	justifyText bool) (string, error) {
+
+	var indent Indent
+
+	if showUserImages {
+		userImage := LoadImage(imageCache, width, toot)
+
+		indent.InitializeWithArray(len((*userImage)[0]), *userImage)
+	} else {
+		indentPadding := 6
+		indentStrings := make([]string, 2)
+		indentStrings[0] = fmt.Sprintf("[grey]%*d[-] │ ", indentPadding, toot.ID)
+		indentStrings[1] = fmt.Sprintf("%*s │ ", indentPadding, " ")
+		indent.InitializeWithArray(len(indentStrings[0]), *&indentStrings)
+	}
+
 	status := &toot.Status
-	return RenderStatus(status, toot, width, showImages, justifyText, false)
+	lines, err := RenderStatus(status, toot, imageCache, width-indent.Width, showImages, justifyText, false)
+	if err == nil {
+		newLines := append(*lines, "")
+		lines = indent.IndentSlice(&newLines)
+		output := ""
+		for i, line := range *lines {
+			output += line
+			if i != len(*lines)-1 {
+				output += "\n"
+			}
+		}
+		return output, nil
+	} else {
+		return "", err
+	}
 }
 
 func RenderStatus(
 	status *mastodon.Status,
 	toot *mast.Toot,
+	imageCache *Images,
 	width int,
 	showImages bool,
 	justifyText bool,
 	isReblog bool,
-) (string, error) {
-	var output string = ""
+) (*[]string, error) {
 	var err error = nil
 
-	var indent string = ""
-	if isReblog {
-		indent = "    "
-	}
+	var output []string = make([]string, 0)
 
 	createdAt := status.CreatedAt
 
@@ -55,14 +92,6 @@ func RenderStatus(
 	} else if status.Reblog != nil {
 		inReplyToOrBoost = " \xe2\x86\xab"
 	}
-
-	idPadding :=
-		width -
-			len(fmt.Sprint(toot.ID)) -
-			runewidth.StringWidth(status.Account.DisplayName) -
-			len(account) -
-			// https://github.com/mattn/go-runewidth/issues/36
-			runewidth.StringWidth(inReplyToOrBoost)
 
 	if !isReblog && toot.IsNotification == true {
 		notification := &toot.Notification
@@ -106,89 +135,101 @@ func RenderStatus(
 			)
 		}
 
-		output = fmt.Sprintf("%s%s\n",
-			output,
+		output = append(output,
 			notificationText,
 		)
 	}
 
-	if isReblog {
-		output = fmt.Sprintf("%s%s[blue]%s[-] [grey]%s[-][purple]%s[-]\n",
-			output,
-			indent,
-			status.Account.DisplayName,
-			account,
-			inReplyToOrBoost)
-	} else {
-		output = fmt.Sprintf("%s%s[blue]%s[-] [grey]%s[-][purple]%s[-][grey]%*d[-]\n",
-			output,
-			indent,
-			status.Account.DisplayName,
-			account,
-			inReplyToOrBoost,
-			idPadding,
-			toot.ID)
-	}
+	output = append(output, fmt.Sprintf("[blue]%s[-] [grey]%s[-][purple]%s[-]",
+		status.Account.DisplayName,
+		account,
+		inReplyToOrBoost))
 
 	if !isReblog && status.Reblog != nil {
+		var indent Indent
+		indent.InitializeWithString(4, "    ")
+
 		reblogOutput, err := RenderStatus(
 			status.Reblog,
 			toot,
-			width,
+			imageCache,
+			width-indent.Width,
 			showImages,
 			justifyText,
 			true)
 		if err == nil {
-			output = fmt.Sprintf("%s%s", output, reblogOutput)
+			output = append(output, *indent.IndentSlice(reblogOutput)...)
 		}
 	} else {
-		var wrappedContent string = WrapWithIndent(
+		lines := WrapWithIndent(
 			html.UnescapeString(strip.StripTags(status.Content)),
-			width-len(indent),
-			indent,
+			width,
 			justifyText,
 		)
 
-		output = fmt.Sprintf("%s%s\n",
-			output,
-			wrappedContent)
+		output = append(output, *lines...)
 	}
 
 	if showImages == true {
 		for _, attachment := range status.MediaAttachments {
-			pix, err := ansimage.NewScaledFromURL(
+			image := imageCache.ImageAtSize(
 				attachment.PreviewURL,
 				int((float64(width) * 0.75)),
 				width,
-				color.Transparent,
-				ansimage.ScaleModeResize,
-				ansimage.NoDithering,
-			)
-			if err == nil {
-				output = fmt.Sprintf("%s\n%s\n", output, pix.RenderExt(false, false))
-			}
+				nil)
+
+			output = append(output, *image...)
 		}
 	}
 
-	output = fmt.Sprintf("%s%s[purple]\xe2\x86\xab %d[-] ",
-		output,
-		indent,
+	finalLine := fmt.Sprintf("[purple]\xe2\x86\xab %d[-] ",
 		status.RepliesCount,
 	)
-	output = fmt.Sprintf("%s[green]\xe2\x86\xbb %d[-] ",
-		output,
+	finalLine += fmt.Sprintf("[green]\xe2\x86\xbb %d[-] ",
 		status.ReblogsCount,
 	)
-	output = fmt.Sprintf("%s[yellow]\xe2\x98\x85 %d[-] ",
-		output,
+	finalLine += fmt.Sprintf("[yellow]\xe2\x98\x85 %d[-] ",
 		status.FavouritesCount,
 	)
-	output = fmt.Sprintf("%s[grey]on %s at %s[-]\n",
-		output,
+	finalLine += fmt.Sprintf("[grey]on %s at %s[-]",
 		createdAt.Format("Jan 2"),
 		createdAt.Format("15:04"),
 	)
+	output = append(output, finalLine)
 
-	output = fmt.Sprintf("%s\n", output)
-	return output, err
+	return &output, err
+}
+
+func LoadImage(imageCache *Images, width int, toot *mast.Toot) *[]string {
+	imageWidth := 6
+	if width > 100 && width <= 150 {
+		imageWidth = 10
+	} else if width > 150 && width <= 200 {
+		imageWidth = 14
+	} else if width > 200 {
+		imageWidth = 18
+	}
+
+	avatarUrl := toot.Status.Account.Avatar
+	if toot.Status.Reblog != nil {
+		avatarUrl = toot.Status.Reblog.Account.Avatar
+	}
+
+	image := imageCache.ImageAtSize(avatarUrl, imageWidth+2, imageWidth, func(loaded *[]string) *[]string {
+		splitImage := make([]string, 1)
+		splitImage[0] = fmt.Sprintf(" [grey]%*d[-] │ ", imageWidth, toot.ID)
+		splitImage = append(splitImage, *loaded...)
+		if splitImage[len(splitImage)-1] == "" {
+			splitImage = splitImage[:len(splitImage)-1]
+		}
+		splitImage = append(splitImage, strings.Repeat(" ", imageWidth))
+		for i, row := range splitImage {
+			if i != 0 {
+				splitImage[i] = " " + row + " │ "
+			}
+		}
+		return &splitImage
+	})
+
+	return image
 }

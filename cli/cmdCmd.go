@@ -27,9 +27,19 @@ var cmdCmd = &cobra.Command{
 		cmdReturn, _, loadTimeline := result.Decompose()
 		switch cmdReturn {
 		case mast.CodeOk:
+			var imageCache *tui.Images
+			var err error
+			if flagShowImages || flagShowUserImages {
+				imageCache, err = tui.NewImages(tempDir)
+				if err != nil {
+					fmt.Print("Cannot create image cache. Select a different directory or run with --show-images=false and --show-user-images=false")
+					os.Exit(1)
+				}
+			}
+
 			if loadTimeline == true {
 				timeline.Load()
-				output, err := tui.RenderTimeline(&timeline, 72, flagShowImages, flagJustifyText)
+				output, err := tui.RenderTimeline(&timeline, imageCache, 72, flagShowImages, flagShowUserImages, flagJustifyText)
 				if err != nil {
 					panic(err)
 				}
