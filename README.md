@@ -182,6 +182,9 @@ Open toot in system browser
 `share`*` toot-id`* \
 Copy toot URL to the clipboard
 
+`history` \
+Show command history
+
 `help` \
 `?` \
 Show help page
@@ -248,9 +251,6 @@ Retoot/boost toot with ID *11*
 
 `help` \
 Show this help
-
-`history` \
-Show command history
 
 `bye` \
 Goodbye!
