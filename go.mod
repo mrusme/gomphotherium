@@ -1,6 +1,6 @@
 module github.com/mrusme/gomphotherium
 
-go 1.19
+go 1.25.0
 
 require (
 	github.com/atotto/clipboard v0.1.4
@@ -32,9 +32,9 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tj/go-css v0.0.0-20191108133013-220a796d1705 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
-	golang.org/x/image v0.18.0 // indirect
+	golang.org/x/image v0.38.0 // indirect
 	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/term v0.30.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/text v0.35.0 // indirect
 )
