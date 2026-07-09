@@ -6,7 +6,7 @@ client.
 
 ## Info
 
-As [I have left](https://xn--gckvb8fzb.com/project-updates-q3-2021/#gomphotherium) 
+As [I have left](https://マリウス.com/updates-2021-q3/#gomphotherium) 
 the Fediverse for now, I won't be iterating too much on this.  However, I'm 
 happy to accept PRs; If you're interested in actively contributing to 
 Gomphotherium or even support maintaining it, feel free to ping me!
