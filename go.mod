@@ -22,7 +22,7 @@ require (
 	github.com/dlclark/regexp2 v1.11.0 // indirect
 	github.com/gdamore/encoding v1.0.1 // indirect
 	github.com/google/btree v1.1.2 // indirect
-	github.com/gorilla/websocket v1.5.1 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
@@ -33,7 +33,6 @@ require (
 	github.com/tj/go-css v0.0.0-20191108133013-220a796d1705 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
 	golang.org/x/image v0.41.0 // indirect
-	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/term v0.43.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
